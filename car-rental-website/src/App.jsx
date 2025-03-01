@@ -1,39 +1,33 @@
-import React, { useEffect } from "react";
-import AOS from "aos";
-import "aos/dist/aos.css";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Home from "./pages/client/Home";
+import CarList from "./pages/client/CarList";
+import CarDetail from "./pages/client/CarDetail";
+import Booking from "./pages/client/Booking";
+import Profile from "./pages/client/Profile";
 
-// Component import
-import Navbar from "./components/Navbar/Navbar";
-import Hero from "./components/Hero/Hero";
-import About from "./components/About/About";
-import Services from "./components/Services/Services";
-import CarList from "./components/CarList/CarList";
-import AppStoreBanner from "./components/AppStoreBanner/AppStoreBanner";
-import Contact from "./components/Contact/Contact";
-import Testimonial from "./components/Testimonial/Testimonial";
-import Footer from "./components/Footer/Footer";
+import Dashboard from "./pages/admin/Dashboard";
+import DashboardCars from "./pages/admin/DashboardCars";
+import DashboardUsers from "./pages/admin/DashboardUsers";
+import DashboardBookings from "./pages/admin/DashboardBookings";
 
 const App = () => {
-  useEffect(() => {
-    AOS.init({
-      offset: 100,
-      duration: 800,
-      easing: "ease-in-sine",
-      delay: 100,
-    });
-    AOS.refresh();
-  }, []);
-
   return (
-    <div className="bg-white text-black overflow-x-hidden">
-      <Navbar />
-      <Hero />
-      <About />
-      <Services />
-      <CarList />
-      <Testimonial />
-      <Footer />
-    </div>
+    <Router>
+      <Routes>
+        {/* Giao diện khách hàng */}
+        <Route path="/" element={<Home />} />
+        {/* <Route path="/cars" element={<CarList />} />
+        <Route path="/cars/:id" element={<CarDetail />} />
+        <Route path="/booking" element={<Booking />} />
+        <Route path="/profile" element={<Profile />} />
+
+        {/* Giao diện quản trị */}
+        {/* <Route path="/admin" element={<Dashboard />} />
+        <Route path="/admin/cars" element={<DashboardCars />} />
+        <Route path="/admin/users" element={<DashboardUsers />} />
+        <Route path="/admin/bookings" element={<DashboardBookings />} /> */} 
+      </Routes>
+    </Router>
   );
 };
 
