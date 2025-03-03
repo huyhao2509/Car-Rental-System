@@ -2,14 +2,13 @@ import React, { useEffect } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
 
-// Component import
-import Navbar from "../../components/Navbar/Navbar";
+// Component import (loại bỏ Navbar và Footer)
 import Hero from "../../components/Hero/Hero";
 import About from "../../components/About/About";
 import Services from "../../components/Services/Services";
 import CarList from "../../components/CarList/CarList";
 import Testimonial from "../../components/Testimonial/Testimonial";
-import Footer from "../../components/Footer/Footer";
+import Contact from "../../components/Contact/Contact";
 
 const Home = () => {
   useEffect(() => {
@@ -24,13 +23,12 @@ const Home = () => {
 
   return (
     <div className="bg-white text-black overflow-x-hidden">
-      <Navbar />
       <Hero />
       <About />
       <Services />
       <CarList />
       <Testimonial />
-      <Footer />
+      {/* <Contact /> */}
     </div>
   );
 };

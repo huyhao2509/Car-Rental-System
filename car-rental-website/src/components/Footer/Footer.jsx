@@ -5,6 +5,9 @@ import {
   FaLinkedin,
   FaLocationArrow,
   FaMobileAlt,
+  FaEnvelope,
+  FaClock,
+  FaChevronRight,
 } from "react-icons/fa";
 
 const FooterLinks = [
@@ -26,87 +29,169 @@ const FooterLinks = [
   },
 ];
 
+const ServiceLinks = [
+  {
+    title: "Cho thuê xe tự lái",
+    link: "/#service-1",
+  },
+  {
+    title: "Cho thuê xe có tài xế",
+    link: "/#service-2",
+  },
+  {
+    title: "Thuê xe theo tháng",
+    link: "/#service-3",
+  },
+  {
+    title: "Thuê xe du lịch",
+    link: "/#service-4",
+  },
+];
+
+const LocationLinks = [
+  {
+    title: "Đà Nẵng",
+    link: "/#location-1",
+  },
+  {
+    title: "Hà Nội",
+    link: "/#location-2",
+  },
+  {
+    title: "Hồ Chí Minh",
+    link: "/#location-3",
+  },
+  {
+    title: "Nha Trang",
+    link: "/#location-4",
+  },
+];
+
 const Footer = () => {
   return (
-    <div className="bg-white dark:bg-gray-200 mt-14 rounded-t-3xl shadow-lg">
-      <section className="container">
-        <div className="grid md:grid-cols-3 py-5">
-          {/* Thông tin công ty */}
-          <div className="py-8 px-4">
-            <h1 className="sm:text-3xl text-xl font-bold sm:text-left text-justify mb-3 flex items-center gap-3 font-serif">
-              Thuê Xe Tự Lái
-            </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-800">
-              Dịch vụ cho thuê xe tự lái nhanh chóng, thuận tiện và chuyên nghiệp.
-            </p>
-            <br />
-            <div className="flex items-center gap-3">
-              <FaLocationArrow />
-              <p>Đà Nẵng, Việt Nam</p>
+    <footer>
+      <div className="bg-red-50 pt-16 pb-10">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* Thông tin công ty */}
+            <div>
+              <h2 className="text-2xl font-bold mb-6 text-red-800 font-serif border-b border-red-400 pb-2 inline-block">
+                Thuê Xe Tự Lái
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Dịch vụ cho thuê xe tự lái nhanh chóng, thuận tiện và chuyên nghiệp với hơn 10 năm kinh nghiệm.
+              </p>
+              
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <FaLocationArrow className="text-red-700 mt-1" />
+                  <p className="text-gray-600">123 Nguyễn Văn Linh, Hải Châu, Đà Nẵng, Việt Nam</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <FaMobileAlt className="text-red-700" />
+                  <p className="text-gray-600">+84 123 456 789</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <FaEnvelope className="text-red-700" />
+                  <p className="text-gray-600">info@thuexetulai.com</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <FaClock className="text-red-700" />
+                  <p className="text-gray-600">08:00 - 18:00, Thứ 2 - Chủ Nhật</p>
+                </div>
+              </div>
+              
+              {/* Mạng xã hội */}
+              <div className="flex items-center gap-4 mt-6">
+                <a href="#" className="bg-red-700 text-white p-2 rounded-full hover:bg-red-800 transition-colors">
+                  <FaFacebook className="text-xl" />
+                </a>
+                <a href="#" className="bg-red-700 text-white p-2 rounded-full hover:bg-red-800 transition-colors">
+                  <FaInstagram className="text-xl" />
+                </a>
+                <a href="#" className="bg-red-700 text-white p-2 rounded-full hover:bg-red-800 transition-colors">
+                  <FaLinkedin className="text-xl" />
+                </a>
+              </div>
             </div>
-            <div className="flex items-center gap-3 mt-3">
-              <FaMobileAlt />
-              <p>+84 123 456 789</p>
-            </div>
-            {/* Mạng xã hội */}
-            <div className="flex items-center gap-3 mt-6">
-              <a href="#">
-                <FaInstagram className="text-3xl hover:text-primary duration-300" />
-              </a>
-              <a href="#">
-                <FaFacebook className="text-3xl hover:text-primary duration-300" />
-              </a>
-              <a href="#">
-                <FaLinkedin className="text-3xl hover:text-primary duration-300" />
-              </a>
-            </div>
-          </div>
 
-          {/* Các liên kết */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 col-span-2 md:pl-10">
-            <div className="py-8 px-4">
-              <h1 className="sm:text-xl text-xl font-bold sm:text-left text-justify mb-3">
+            {/* Các liên kết */}
+            <div>
+              <h3 className="text-xl font-bold mb-6 text-red-800 border-b border-red-400 pb-2 inline-block">
                 Liên Kết Quan Trọng
-              </h1>
-              <ul className="flex flex-col gap-3">
+              </h3>
+              <ul className="space-y-3">
                 {FooterLinks.map((link, index) => (
-                  <li key={index} className="cursor-pointer hover:translate-x-1 duration-300 hover:text-primary space-x-1 text-gray-600 dark:text-gray-800">
-                    <span>&#11162;</span>
-                    <span>{link.title}</span>
+                  <li key={index}>
+                    <a 
+                      href={link.link}
+                      className="flex items-center text-gray-600 hover:text-red-700 hover:translate-x-1 transition-all duration-300"
+                    >
+                      <FaChevronRight className="mr-2 text-xs text-red-700" />
+                      {link.title}
+                    </a>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="py-8 px-4">
-              <h1 className="sm:text-xl text-xl font-bold sm:text-left text-justify mb-3">
+            <div>
+              <h3 className="text-xl font-bold mb-6 text-red-800 border-b border-red-400 pb-2 inline-block">
                 Dịch Vụ
-              </h1>
-              <ul className="flex flex-col gap-3">
-                {FooterLinks.map((link, index) => (
-                  <li key={index} className="cursor-pointer hover:translate-x-1 duration-300 hover:text-primary space-x-1 text-gray-600 dark:text-gray-800">
-                    <span>&#11162;</span>
-                    <span>{link.title}</span>
+              </h3>
+              <ul className="space-y-3">
+                {ServiceLinks.map((link, index) => (
+                  <li key={index}>
+                    <a 
+                      href={link.link}
+                      className="flex items-center text-gray-600 hover:text-red-700 hover:translate-x-1 transition-all duration-300"
+                    >
+                      <FaChevronRight className="mr-2 text-xs text-red-700" />
+                      {link.title}
+                    </a>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="py-8 px-4">
-              <h1 className="sm:text-xl text-xl font-bold sm:text-left text-justify mb-3">
-                Địa Chỉ
-              </h1>
-              <ul className="flex flex-col gap-3">
-                <li className="cursor-pointer hover:translate-x-1 duration-300 hover:text-primary space-x-1 text-gray-600 dark:text-gray-800">
-                  <span>&#11162;</span>
-                  <span>Đà Nẵng, Việt Nam</span>
-                </li>
+            <div>
+              <h3 className="text-xl font-bold mb-6 text-red-800 border-b border-red-400 pb-2 inline-block">
+                Chi Nhánh
+              </h3>
+              <ul className="space-y-3">
+                {LocationLinks.map((link, index) => (
+                  <li key={index}>
+                    <a 
+                      href={link.link}
+                      className="flex items-center text-gray-600 hover:text-red-700 hover:translate-x-1 transition-all duration-300"
+                    >
+                      <FaChevronRight className="mr-2 text-xs text-red-700" />
+                      {link.title}
+                    </a>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
         </div>
-      </section>
-    </div>
+      </div>
+      
+      {/* Copyright Section */}
+      <div className="bg-red-100 py-4">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <p className="text-gray-600 text-sm">
+              © {new Date().getFullYear()} Thuê Xe Tự Lái. Đã đăng ký bản quyền.
+            </p>
+            <div className="flex gap-4 mt-3 md:mt-0">
+              <a href="#" className="text-sm text-gray-600 hover:text-red-700">Điều khoản sử dụng</a>
+              <span className="text-gray-500">|</span>
+              <a href="#" className="text-sm text-gray-600 hover:text-red-700">Chính sách bảo mật</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
   );
 };
 
