@@ -16,9 +16,15 @@ export default {
         center: true,
         padding: {
           DEFAULT: "1rem",
-          sm: "3rem",
+          sm: "2rem",
+          md: "3rem",
         },
-      },
+        screens: {
+          lg: "1024px",
+          xl: "1280px",
+          "2xl": "1536px",
+        },
+      },      
     },
   },
   plugins: [],
