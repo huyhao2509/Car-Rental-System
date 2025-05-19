@@ -1,0 +1,7 @@
+docker-compose up -d
+docker cp .\db_connection.sql mysql:/db_connection.sql
+docker exec -it mysql bash
+mysql -u root -p
+CREATE DATABASE IF NOT EXISTS thue_xe_do_an;
+USE thue_xe_do_an;
+SOURCE /db_connection.sql;

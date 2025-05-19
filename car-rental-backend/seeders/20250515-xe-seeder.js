@@ -1,0 +1,77 @@
+'use strict';
+
+module.exports = {
+    up: async (queryInterface, Sequelize) => {
+        await queryInterface.sequelize.query('SET FOREIGN_KEY_CHECKS = 0');
+        await queryInterface.bulkDelete('XE', null, {});
+        await queryInterface.sequelize.query('TRUNCATE TABLE XE');
+        await queryInterface.bulkInsert('XE', [
+            {
+                idLoaiXe: 1, idHangXe: 1, tenXe: 'Toyota Camry', bienSoXe: '30A-12345', namSanXuat: 2020, giaTheoGio: 200000, giaTheoNgay: 1200000, sucChua: 5, trangThai: 1, thoiGianTao: new Date(), thoiGianSua: new Date(), hinhAnh: "https://cdn2.tuoitre.vn/thumb_w/1200/471584752817336320/2023/11/15/2025-toyota-camry-launch-00002-2-17000191505381765161895-235-25-1269-2000-crop-17000191759471696074333.jpg"
+            },
+            {
+                idLoaiXe: 2, idHangXe: 2, tenXe: 'Honda CRV', bienSoXe: '43A-67890', namSanXuat: 2021, giaTheoGio: 250000, giaTheoNgay: 1500000, sucChua: 7, trangThai: 1, thoiGianTao: new Date(), thoiGianSua: new Date(), hinhAnh: "https://hondamydinh.net/wp-content/uploads/2023/12/honda-cr-v-20245.webp"
+            },
+            {
+                idLoaiXe: 3, idHangXe: 3, tenXe: 'Ford Focus', bienSoXe: '51A-11223', namSanXuat: 2019, giaTheoGio: 180000, giaTheoNgay: 1100000, sucChua: 5, trangThai: 1, thoiGianTao: new Date(), thoiGianSua: new Date(), hinhAnh: "https://nuoixe.vn/storage/uploads/danh-gia-ford-focus/Ford-Focus-duoc-danh-gia-la-co-kha-nang-van-hanh-tot-so-voi-cac-doi-thu-cung-phan-khuc.jpg"
+            },
+            {
+                idLoaiXe: 4, idHangXe: 4, tenXe: 'Hyundai Starex', bienSoXe: '30B-33445', namSanXuat: 2018, giaTheoGio: 300000, giaTheoNgay: 1800000, sucChua: 9, trangThai: 1, thoiGianTao: new Date(), thoiGianSua: new Date(), hinhAnh: "https://zestech.vn/wp-content/uploads/2020/08/Hyundai-Starex-e1598411665743.jpg"
+            },
+            {
+                idLoaiXe: 5, idHangXe: 5, tenXe: 'Mazda MX-5', bienSoXe: '43C-55667', namSanXuat: 2022, giaTheoGio: 350000, giaTheoNgay: 2000000, sucChua: 2, trangThai: 1, thoiGianTao: new Date(), thoiGianSua: new Date(), hinhAnh: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Mazda_Roadster_%28MX-5%29_by_Negawa_Bridge_%28cropped%29.jpg/960px-Mazda_Roadster_%28MX-5%29_by_Negawa_Bridge_%28cropped%29.jpg"
+            },
+            {
+                idLoaiXe: 1, idHangXe: 6, tenXe: 'Kia K3', bienSoXe: '51B-77889', namSanXuat: 2021, giaTheoGio: 190000, giaTheoNgay: 1150000, sucChua: 5, trangThai: 1, thoiGianTao: new Date(), thoiGianSua: new Date(), hinhAnh: "https://xedoisong.vn/uploads/user_4/2023/8-2023/8/kia/xedoisong_sedan_hang_c_kia_k3_1.jpg"
+            },
+            {
+                idLoaiXe: 2, idHangXe: 7, tenXe: 'BMW X5', bienSoXe: '30C-99001', namSanXuat: 2020, giaTheoGio: 400000, giaTheoNgay: 2500000, sucChua: 7, trangThai: 1, thoiGianTao: new Date(), thoiGianSua: new Date(), hinhAnh: "https://i1-vnexpress.vnecdn.net/2023/11/13/DSC09704-JPG_1699846880.jpg?w=2400&h=0&q=100&dpr=1&fit=crop&s=s6tR7xpdPfXS4kuO3SJwfg&t=image"
+            },
+            {
+                idLoaiXe: 3, idHangXe: 8, tenXe: 'Mercedes A-Class', bienSoXe: '43D-22334', namSanXuat: 2021, giaTheoGio: 380000, giaTheoNgay: 2300000, sucChua: 5, trangThai: 1, thoiGianTao: new Date(), thoiGianSua: new Date(), hinhAnh: "https://giaxemercedes.vn/wp-content/uploads/2022/07/Mercedes_AMG_A35_4matic_giaxemercedes_vn.jpg"
+            },
+            {
+                idLoaiXe: 4, idHangXe: 9, tenXe: 'Nissan Serena', bienSoXe: '51C-44556', namSanXuat: 2019, giaTheoGio: 320000, giaTheoNgay: 1900000, sucChua: 8, trangThai: 1, thoiGianTao: new Date(), thoiGianSua: new Date(), hinhAnh: "https://cdn2.tuoitre.vn/thumb_w/1200/2022/11/28/nissan-serena-20s-16696396680582026019175-crop-16696398181461857988394.jpg"
+            },
+            {
+                idLoaiXe: 5, idHangXe: 10, tenXe: 'Chevrolet Camaro', bienSoXe: '30D-66778', namSanXuat: 2022, giaTheoGio: 500000, giaTheoNgay: 3000000, sucChua: 4, trangThai: 1, thoiGianTao: new Date(), thoiGianSua: new Date(), hinhAnh: "https://www.hsv.com.au/images/see/camaro/camaro-zl1-sculpted-to-perform-lg.jpg"
+            },
+            {
+                idLoaiXe: 1, idHangXe: 11, tenXe: 'VinFast Lux A2.0', bienSoXe: '43E-88990', namSanXuat: 2021, giaTheoGio: 220000, giaTheoNgay: 1300000, sucChua: 5, trangThai: 1, thoiGianTao: new Date(), thoiGianSua: new Date(), hinhAnh: "https://vinfasttimescity.vn/wp-content/uploads/2019/11/vinfast-lux-a-2_0-mau-white.png"
+            },
+            {
+                idLoaiXe: 2, idHangXe: 1, tenXe: 'Toyota Fortuner', bienSoXe: '51D-11224', namSanXuat: 2020, giaTheoGio: 270000, giaTheoNgay: 1600000, sucChua: 7, trangThai: 1, thoiGianTao: new Date(), thoiGianSua: new Date(), hinhAnh: "https://media.vov.vn/sites/default/files/styles/large/public/2024-01/kv_fortuner_2024.jpg"
+            },
+            {
+                idLoaiXe: 3, idHangXe: 2, tenXe: 'Honda Jazz', bienSoXe: '30E-33446', namSanXuat: 2018, giaTheoGio: 170000, giaTheoNgay: 1000000, sucChua: 5, trangThai: 1, thoiGianTao: new Date(), thoiGianSua: new Date(), hinhAnh: "https://hondaotosgquan7.vn/wp-content/uploads/2022/02/Jazz-Cam.png"
+            },
+            {
+                idLoaiXe: 4, idHangXe: 3, tenXe: 'Ford Tourneo', bienSoXe: '43F-55668', namSanXuat: 2019, giaTheoGio: 310000, giaTheoNgay: 1850000, sucChua: 7, trangThai: 1, thoiGianTao: new Date(), thoiGianSua: new Date(), hinhAnh: "https://www.benthanhford.com.vn/gw-content/images/ford-tourneo-ngoai-thatphan-cua-xe-u1PRk.jpg"
+            },
+            {
+                idLoaiXe: 5, idHangXe: 4, tenXe: 'Hyundai Veloster', bienSoXe: '51E-77880', namSanXuat: 2022, giaTheoGio: 340000, giaTheoNgay: 1950000, sucChua: 4, trangThai: 1, thoiGianTao: new Date(), thoiGianSua: new Date(), hinhAnh: "https://xehay.vn/uploads/thumb/640x480/xehay-veloster-2020-060919-3.jpg"
+            },
+            {
+                idLoaiXe: 1, idHangXe: 5, tenXe: 'Mazda 6', bienSoXe: '30F-99002', namSanXuat: 2020, giaTheoGio: 210000, giaTheoNgay: 1250000, sucChua: 5, trangThai: 1, thoiGianTao: new Date(), thoiGianSua: new Date(), hinhAnh: "https://giaxeoto.vn/admin/upload/images/mazda-6-2023-gia-lan-banh-uu-dai-062023-1688001729.jpeg"
+            },
+            {
+                idLoaiXe: 2, idHangXe: 6, tenXe: 'Kia Sorento', bienSoXe: '43G-22335', namSanXuat: 2021, giaTheoGio: 260000, giaTheoNgay: 1550000, sucChua: 7, trangThai: 1, thoiGianTao: new Date(), thoiGianSua: new Date(), hinhAnh: "https://i1-vnexpress.vnecdn.net/2022/12/14/Kia-Sorento-Hybrid_1671001157.jpg?w=2400&h=0&q=100&dpr=1&fit=crop&s=1-sPT8ES4QUDqEwST55phQ&t=image"
+            },
+            {
+                idLoaiXe: 3, idHangXe: 7, tenXe: 'BMW 1 Series', bienSoXe: '51F-44557', namSanXuat: 2019, giaTheoGio: 370000, giaTheoNgay: 2250000, sucChua: 5, trangThai: 1, thoiGianTao: new Date(), thoiGianSua: new Date(), hinhAnh: "https://bmwvietnam.com.vn/wp-content/uploads/2021/07/bmw-118i.jpg"
+            },
+            {
+                idLoaiXe: 4, idHangXe: 8, tenXe: 'Mercedes V-Class', bienSoXe: '30G-66779', namSanXuat: 2020, giaTheoGio: 420000, giaTheoNgay: 2600000, sucChua: 8, trangThai: 1, thoiGianTao: new Date(), thoiGianSua: new Date(), hinhAnh: "https://www.winauto.vn/wp-content/uploads/2024/07/mercedes-benz-v-class.jpg"
+            },
+            {
+                idLoaiXe: 5, idHangXe: 9, tenXe: 'Nissan 370Z', bienSoXe: '43H-88991', namSanXuat: 2022, giaTheoGio: 480000, giaTheoNgay: 2900000, sucChua: 2, trangThai: 1, thoiGianTao: new Date(), thoiGianSua: new Date(), hinhAnh: "https://media.vietnamplus.vn/images/c14f6479e83e315b4cf3a2906cc6a51e5e657fb323506db26bf1bc71b1b3c859c53aca45e832b026a64701d28d84ae678376ec2c1d8dbd04dcee2003376b871358db261190b4d4ffeaa677e558889593/2014826_370Z_Nismo.jpg.webp"
+            }
+        ], {});
+
+        await queryInterface.sequelize.query('SET FOREIGN_KEY_CHECKS = 1');
+    },
+
+    down: async (queryInterface, Sequelize) => {
+        await queryInterface.bulkDelete('XE', null, {});
+    }
+};
