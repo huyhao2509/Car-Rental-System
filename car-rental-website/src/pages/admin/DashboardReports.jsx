@@ -8,121 +8,74 @@ import {
   LineChart, Line, BarChart, Bar, PieChart as RechartPieChart, Pie, Cell, 
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
 } from 'recharts';
+import Api from '@/utils/Api';
 
 const DashboardReports = ({ formatCurrency }) => {
   // State cho filter
   const [reportPeriod, setReportPeriod] = useState("month");
   const [reportType, setReportType] = useState("revenue");
-  const [yearFilter, setYearFilter] = useState(2025);
-  const [monthFilter, setMonthFilter] = useState(3); // Tháng 3
+  const [yearFilter, setYearFilter] = useState(new Date().getFullYear());
+  const [monthFilter, setMonthFilter] = useState(new Date().getMonth() + 1);
+  const [loading, setLoading] = useState(false);
   
-  // Mock data cho biểu đồ doanh thu theo tháng
-  const monthlyRevenueData = [
-    { name: "T1", value: 95000000 },
-    { name: "T2", value: 120000000 },
-    { name: "T3", value: 135000000 },
-    { name: "T4", value: 140000000 },
-    { name: "T5", value: 150000000 },
-    { name: "T6", value: 180000000 },
-    { name: "T7", value: 200000000 },
-    { name: "T8", value: 220000000 },
-    { name: "T9", value: 190000000 },
-    { name: "T10", value: 160000000 },
-    { name: "T11", value: 140000000 },
-    { name: "T12", value: 180000000 }
-  ];
-  
-  // Mock data cho biểu đồ tăng trưởng
-  const growthData = [
-    { name: "T1", value: 0 },
-    { name: "T2", value: 26 },
-    { name: "T3", value: 12.5 },
-    { name: "T4", value: 3.7 },
-    { name: "T5", value: 7.1 },
-    { name: "T6", value: 20 },
-    { name: "T7", value: 11.1 },
-    { name: "T8", value: 10 },
-    { name: "T9", value: -13.6 },
-    { name: "T10", value: -15.8 },
-    { name: "T11", value: -12.5 },
-    { name: "T12", value: 28.6 }
-  ];
-  
-  // Mock data cho biểu đồ loại xe được thuê nhiều nhất
-  const carTypeData = [
-    { name: "Sedan", value: 35 },
-    { name: "SUV", value: 30 },
-    { name: "Hatchback", value: 15 },
-    { name: "MPV", value: 12 },
-    { name: "Xe điện", value: 8 }
-  ];
-  
-  // Mock data cho biểu đồ thời gian thuê
-  const rentalDurationData = [
-    { name: "1 ngày", value: 15 },
-    { name: "2-3 ngày", value: 40 },
-    { name: "4-7 ngày", value: 30 },
-    { name: "1-2 tuần", value: 10 },
-    { name: "Trên 2 tuần", value: 5 }
-  ];
+  // State for report data
+  const [monthlyRevenueData, setMonthlyRevenueData] = useState([]);
+  const [growthData, setGrowthData] = useState([]);
+  const [carTypeData, setCarTypeData] = useState([]);
+  const [rentalDurationData, setRentalDurationData] = useState([]);
+  const [summaryStats, setSummaryStats] = useState({
+    totalRentals: 0,
+    totalRevenue: 0,
+    averageRentalPrice: 0,
+    mostRentedCar: "",
+    mostActiveCustomer: "",
+    completionRate: 0,
+    cancellationRate: 0
+  });
+  const [topCarsData, setTopCarsData] = useState([]);
+
+  // Fetch report data
+  useEffect(() => {
+    const fetchReportData = async () => {
+      setLoading(true);
+      try {
+        const response = await Api.get('client/don-hang/admin/reports', {
+          params: {
+            period: reportPeriod,
+            year: yearFilter,
+            month: monthFilter
+          }
+        });
+        
+        if (response.data && response.data.status) {
+          const data = response.data.data;
+          setMonthlyRevenueData(data.monthlyRevenueData || []);
+          setGrowthData(data.growthData || []);
+          setCarTypeData(data.carTypeData || []);
+          setRentalDurationData(data.rentalDurationData || []);
+          setSummaryStats(data.summaryStats || {
+            totalRentals: 0,
+            totalRevenue: 0,
+            averageRentalPrice: 0,
+            mostRentedCar: "",
+            mostActiveCustomer: "",
+            completionRate: 0,
+            cancellationRate: 0
+          });
+          setTopCarsData(data.topCarsData || []);
+        }
+      } catch (error) {
+        console.error("Error fetching report data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchReportData();
+  }, [reportPeriod, yearFilter, monthFilter]);
   
   // Colors for pie charts
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
-  
-  // Mock data cho thống kê tổng hợp
-  const summaryStats = {
-    totalRentals: 245,
-    totalRevenue: 1435000000,
-    averageRentalPrice: 5800000,
-    mostRentedCar: "Toyota Camry 2.5Q",
-    mostActiveCustomer: "Nguyễn Văn A",
-    completionRate: 92,
-    cancellationRate: 5
-  };
-  
-  // Mock data cho bảng thống kê top xe
-  const topCarsData = [
-    { 
-      id: 1, 
-      name: "Toyota Camry 2.5Q", 
-      rentCount: 35, 
-      revenue: 42000000, 
-      avgRating: 4.8,
-      growth: 15
-    },
-    { 
-      id: 2, 
-      name: "Honda Civic RS", 
-      rentCount: 28, 
-      revenue: 28000000, 
-      avgRating: 4.7,
-      growth: 8
-    },
-    { 
-      id: 3, 
-      name: "VinFast VF8 Eco", 
-      rentCount: 22, 
-      revenue: 33000000, 
-      avgRating: 4.5,
-      growth: 25
-    },
-    { 
-      id: 4, 
-      name: "Mazda CX-5 2.5L", 
-      rentCount: 20, 
-      revenue: 22000000, 
-      avgRating: 4.6,
-      growth: 5
-    },
-    { 
-      id: 5, 
-      name: "Hyundai Tucson 1.6 Turbo", 
-      rentCount: 18, 
-      revenue: 19800000, 
-      avgRating: 4.4,
-      growth: -3
-    }
-  ];
   
   // Hàm render biểu đồ doanh thu
   const renderRevenueChart = () => {
@@ -131,14 +84,14 @@ const DashboardReports = ({ formatCurrency }) => {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-bold text-gray-800">Doanh thu theo tháng</h2>
           <div className="flex space-x-2">
-            <select
-              className="bg-white border border-gray-300 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            <select              className="bg-white border border-gray-300 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={yearFilter}
               onChange={(e) => setYearFilter(Number(e.target.value))}
+              disabled={loading}
             >
-              <option value={2023}>2023</option>
-              <option value={2024}>2024</option>
-              <option value={2025}>2025</option>
+              <option value={new Date().getFullYear() - 2}>{new Date().getFullYear() - 2}</option>
+              <option value={new Date().getFullYear() - 1}>{new Date().getFullYear() - 1}</option>
+              <option value={new Date().getFullYear()}>{new Date().getFullYear()}</option>
             </select>
             <button className="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg text-sm font-medium border border-blue-100 flex items-center hover:bg-blue-100">
               <Download className="w-4 h-4 mr-1" />
@@ -431,8 +384,7 @@ const DashboardReports = ({ formatCurrency }) => {
       </div>
     );
   };
-  
-  return (
+    return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">Báo cáo thống kê</h1>
@@ -442,6 +394,7 @@ const DashboardReports = ({ formatCurrency }) => {
               className="bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={reportPeriod}
               onChange={(e) => setReportPeriod(e.target.value)}
+              disabled={loading}
             >
               <option value="day">Ngày</option>
               <option value="week">Tuần</option>
@@ -456,41 +409,76 @@ const DashboardReports = ({ formatCurrency }) => {
               className="bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={reportType}
               onChange={(e) => setReportType(e.target.value)}
+              disabled={loading}
             >
               <option value="revenue">Doanh thu</option>
               <option value="bookings">Đơn hàng</option>
               <option value="cars">Xe</option>
               <option value="customers">Khách hàng</option>
             </select>
-            <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
-          </div>
+            <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />          </div>
           
-          <button className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-medium border border-blue-100 flex items-center hover:bg-blue-100 transition duration-300">
+          {/* Month filter for monthly view */}
+          {reportPeriod === 'month' && (
+            <div className="relative">
+              <select 
+                className="bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={monthFilter}
+                onChange={(e) => setMonthFilter(Number(e.target.value))}
+                disabled={loading}
+              >
+                {Array.from({ length: 12 }, (_, i) => (
+                  <option key={i+1} value={i+1}>Tháng {i+1}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
+            </div>
+          )}
+          
+          <button
+            className={`${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-100'} bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-medium border border-blue-100 flex items-center transition duration-300`}
+            disabled={loading}
+          >
             <Filter className="w-4 h-4 mr-1" />
             Bộ lọc
           </button>
           
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium flex items-center hover:bg-blue-700 transition duration-300">
+          <button
+            className={`${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'} bg-blue-600 text-white px-4 py-2 rounded-lg font-medium flex items-center transition duration-300`}
+            disabled={loading}
+            onClick={() => {
+              // Generate CSV data and download it
+              alert('Tính năng xuất báo cáo sẽ được triển khai trong cập nhật tiếp theo');
+            }}
+          >
             <Download className="w-4 h-4 mr-1" />
             Xuất báo cáo
           </button>
         </div>
       </div>
-      
-      {/* Thống kê tổng hợp */}
-      {renderSummaryStats()}
-      
-      {/* Biểu đồ doanh thu */}
-      {renderRevenueChart()}
-      
-      {/* Biểu đồ tăng trưởng */}
-      {renderGrowthChart()}
-      
-      {/* Biểu đồ phân bố loại xe và thời gian thuê */}
-      {renderPieCharts()}
-      
-      {/* Bảng top xe */}
-      {renderTopCarsTable()}
+        {loading ? (
+        <div className="flex flex-col items-center justify-center py-10">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-3 text-gray-600">Đang tải dữ liệu...</p>
+        </div>
+      ) : (
+        <>
+          {/* Thống kê tổng hợp */}
+          {renderSummaryStats()}
+          
+          {/* Biểu đồ doanh thu */}
+          {renderRevenueChart()}
+          
+          {/* Biểu đồ tăng trưởng */}
+          {renderGrowthChart()}
+          
+          {/* Biểu đồ phân bố loại xe và thời gian thuê */}
+          {renderPieCharts()}
+          
+          {/* Bảng top xe */}
+          {renderTopCarsTable()}
+        </>
+      )}
     </div>
   );
 };

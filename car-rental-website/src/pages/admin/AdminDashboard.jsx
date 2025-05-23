@@ -16,43 +16,105 @@ import DashboardManageCars from "./DashboardManageCars";
 import DashboardManageRoles from "./DashboardManageRoles";
 import Api from '@/utils/Api';
 
-const AdminDashboard = () => {
-    // State để quản lý menu active
+const AdminDashboard = () => {    // State để quản lý menu active
     const [activeMenu, setActiveMenu] = useState("dashboard");
-    // State để quản lý submenu
     const [openSubmenu, setOpenSubmenu] = useState(null);
     // State cho thông báo
     const [notifications, setNotifications] = useState(3);
     // State cho sidebar mobile
     const [sidebarOpen, setSidebarOpen] = useState(false);
-
-    // Mock data cho dashboard
+    // State cho phần trăm tăng trưởng doanh thu
+    const [growthPercentage, setGrowthPercentage] = useState(0);
+    // State cho dashboard với giá trị khởi tạo ban đầu
     const [stats, setStats] = useState({
-        totalCars: 120,
-        availableCars: 78,
-        totalCustomers: 865,
-        pendingOrders: 12,
-        totalRevenue: 1235000000,
-        monthlyRevenue: 135000000,
-        lastMonthRevenue: 120000000
+        totalCars: 0,
+        availableCars: 0,
+        totalCustomers: 0,
+        pendingOrders: 0,
+        confirmedOrders: 0,
+        completedOrders: 0,
+        cancelledOrders: 0,
+        totalRevenue: 0,
+        monthlyRevenue: 0,
+        lastMonthRevenue: 0,
+        topRentedCars: [],
+        monthlyRevenueData: [],
+        recentOrders: []
     });
 
     // Fetch dashboard stats từ API
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const res = await Api.get('/admin/dashboard-stats');
+                const res = await Api.get('client/don-hang/admin/dashboard-stats');
                 if (res.data.status) {
-                    setStats(res.data.data);
+                    // Lưu toàn bộ dữ liệu thống kê từ API
+                    setStats({
+                        totalCars: res.data.data.totalCars || 0,
+                        availableCars: res.data.data.availableCars || 0,
+                        totalCustomers: res.data.data.totalCustomers || 0,
+                        pendingOrders: res.data.data.pendingOrders || 0,
+                        confirmedOrders: res.data.data.confirmedOrders || 0,
+                        completedOrders: res.data.data.completedOrders || 0,
+                        cancelledOrders: res.data.data.cancelledOrders || 0,
+                        totalRevenue: res.data.data.totalRevenue || 0,
+                        monthlyRevenue: res.data.data.monthlyRevenue || 0,
+                        lastMonthRevenue: res.data.data.lastMonthRevenue || 0,
+                        monthlyRevenueData: res.data.data.monthlyRevenueData || [],
+                        topRentedCars: res.data.data.topRentedCars || []
+                    });
+                    
+                    // Tính phần trăm tăng trưởng doanh thu so với tháng trước
+                    const monthlyRevenue = res.data.data.monthlyRevenue || 0;
+                    const lastMonthRevenue = res.data.data.lastMonthRevenue || 0;
+                    let growthPercentage = 0;
+                    
+                    if (lastMonthRevenue > 0) {
+                        growthPercentage = ((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100;
+                    }
+                    
+                    setGrowthPercentage(growthPercentage.toFixed(1));
+                    
+                    // Nếu có dữ liệu đơn hàng gần đây, cập nhật vào state orders
+                    if (res.data.data.recentOrders && res.data.data.recentOrders.length > 0) {
+                        const formattedOrders = res.data.data.recentOrders.map(order => {                            // Lấy thông tin xe từ đơn hàng chi tiết đầu tiên (nếu có)
+                            let carName = 'Không xác định';
+                            if (order.ChiTietDonHangs && order.ChiTietDonHangs.length > 0 && order.ChiTietDonHangs[0].Xe) {
+                                carName = order.ChiTietDonHangs[0].Xe.tenXe;
+                            }
+                            
+                            return {
+                                id: order.maDonHang || order.id,
+                                customerName: order.NguoiDung?.hoTen || 'Không xác định',
+                                carName: carName,
+                                startDate: order.thoiGianBatDau,
+                                endDate: order.thoiGianKetThuc,
+                                status: mapOrderStatus(order.trangThai),
+                                total: order.thanhTien
+                            };
+                        });
+                        setOrders(formattedOrders);
+                    }
                 }
             } catch (err) {
-                // Có thể toast lỗi hoặc log
+                console.error('Lỗi khi lấy thông tin dashboard:', err);
             }
         };
+        
+        // Hàm chuyển đổi mã trạng thái đơn hàng sang chuỗi status
+        const mapOrderStatus = (statusCode) => {
+            switch (statusCode) {
+                case 1: return 'pending';      // Chờ thanh toán
+                case 2: return 'confirmed';    // Đã thanh toán
+                case 3: return 'cancelled';    // Đã hủy
+                case 4: return 'completed';    // Hoàn thành
+                default: return 'unknown';
+            }
+        };
+        
         fetchStats();
     }, []);
 
-    // Mock data cho danh sách đơn hàng
     const [orders, setOrders] = useState([
         {
             id: "ORD001",
@@ -147,86 +209,6 @@ const AdminDashboard = () => {
         }
     };
 
-    const [cars, setCars] = useState([
-        {
-            id: 1,
-            name: "Toyota Camry 2.5Q",
-            licensePlate: "30A-123.45",
-            year: 2023,
-            seats: 5,
-            fuel: "Xăng",
-            pricePerDay: 1200000,
-            status: "available",
-            location: "Hà Nội"
-        },
-        {
-            id: 2,
-            name: "Honda Civic RS",
-            licensePlate: "51F-678.90",
-            year: 2023,
-            seats: 5,
-            fuel: "Xăng",
-            pricePerDay: 1000000,
-            status: "rented",
-            location: "Hồ Chí Minh"
-        },
-        {
-            id: 3,
-            name: "Mazda CX-5 2.5L",
-            licensePlate: "43A-111.22",
-            year: 2022,
-            seats: 5,
-            fuel: "Xăng",
-            pricePerDay: 1100000,
-            status: "available",
-            location: "Đà Nẵng"
-        },
-        {
-            id: 4,
-            name: "VinFast VF8 Eco",
-            licensePlate: "30F-333.44",
-            year: 2023,
-            seats: 7,
-            fuel: "Điện",
-            pricePerDay: 1500000,
-            status: "maintenance",
-            location: "Hà Nội"
-        }
-    ]);
-
-    const [customers, setCustomers] = useState([
-        {
-            id: 1,
-            name: "Nguyễn Văn A",
-            phone: "0912345678",
-            email: "nguyenvana@example.com",
-            identityNumber: "0123456789",
-            driverLicense: "AB123456",
-            registeredDate: "2023-01-15",
-            totalOrders: 8
-        },
-        {
-            id: 2,
-            name: "Trần Thị B",
-            phone: "0987654321",
-            email: "tranthib@example.com",
-            identityNumber: "0987654321",
-            driverLicense: "CD789012",
-            registeredDate: "2023-02-20",
-            totalOrders: 5
-        },
-        {
-            id: 3,
-            name: "Lê Văn C",
-            phone: "0912345677",
-            email: "levanc@example.com",
-            identityNumber: "0123456788",
-            driverLicense: "EF345678",
-            registeredDate: "2023-03-10",
-            totalOrders: 3
-        }
-    ]);
-
     // Hàm render nội dung chính dựa vào menu active
     const renderContent = () => {
         switch (activeMenu) {
@@ -263,8 +245,8 @@ const AdminDashboard = () => {
             case 'customers':
                 return (
                     <DashboardUsers
-                        customers={customers}
-                        setCustomers={setCustomers}
+                        // customers={customers}
+                        // setCustomers={setCustomers}
                     />
                 );
             case 'reports':
@@ -275,8 +257,6 @@ const AdminDashboard = () => {
                 return (
                     <DashboardPromotions formatCurrency={formatCurrency} />
                 );
-            case 'settings':
-                return renderSettings();
             default:
                 return renderDashboard();
         }
@@ -320,13 +300,23 @@ const AdminDashboard = () => {
 
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                         <div className="flex justify-between items-start">
-                            <div>
-                                <p className="text-gray-500 text-sm">Doanh thu tháng này</p>
+                            <div>                                <p className="text-gray-500 text-sm">Doanh thu tháng này</p>
                                 <h3 className="text-2xl font-bold mt-1">{formatCurrency(stats.monthlyRevenue)}</h3>
-                                <p className="text-sm text-green-600 flex items-center mt-1">
-                                    <TrendingUp className="w-4 h-4 mr-1" />
-                                    +12.5% so với tháng trước
-                                </p>
+                                {growthPercentage > 0 ? (
+                                    <p className="text-sm text-green-600 flex items-center mt-1">
+                                        <TrendingUp className="w-4 h-4 mr-1" />
+                                        +{growthPercentage}% so với tháng trước
+                                    </p>
+                                ) : growthPercentage < 0 ? (
+                                    <p className="text-sm text-red-600 flex items-center mt-1">
+                                        <TrendingUp className="w-4 h-4 mr-1 transform rotate-180" />
+                                        {growthPercentage}% so với tháng trước
+                                    </p>
+                                ) : (
+                                    <p className="text-sm text-gray-600 flex items-center mt-1">
+                                        Không thay đổi so với tháng trước
+                                    </p>
+                                )}
                             </div>
                             <div className="bg-blue-100 p-3 rounded-lg">
                                 <BarChart2 className="w-6 h-6 text-blue-600" />
@@ -446,7 +436,7 @@ const AdminDashboard = () => {
                                     <Clock className="w-8 h-8 text-yellow-600" />
                                 </div>
                                 <span className="text-sm text-gray-500">Chờ duyệt</span>
-                                <span className="text-xl font-bold">{stats.pendingOrders}</span>
+                                <span className="text-xl font-bold">{stats.pendingOrders || 0}</span>
                             </div>
 
                             <div className="flex flex-col items-center">
@@ -454,7 +444,7 @@ const AdminDashboard = () => {
                                     <CheckCircle className="w-8 h-8 text-blue-600" />
                                 </div>
                                 <span className="text-sm text-gray-500">Đã xác nhận</span>
-                                <span className="text-xl font-bold">18</span>
+                                <span className="text-xl font-bold">{stats.confirmedOrders || 0}</span>
                             </div>
 
                             <div className="flex flex-col items-center">
@@ -462,7 +452,7 @@ const AdminDashboard = () => {
                                     <CheckCircle className="w-8 h-8 text-green-600" />
                                 </div>
                                 <span className="text-sm text-gray-500">Hoàn thành</span>
-                                <span className="text-xl font-bold">87</span>
+                                <span className="text-xl font-bold">{stats.completedOrders || 0}</span>
                             </div>
 
                             <div className="flex flex-col items-center">
@@ -470,58 +460,136 @@ const AdminDashboard = () => {
                                     <XCircle className="w-8 h-8 text-red-600" />
                                 </div>
                                 <span className="text-sm text-gray-500">Đã hủy</span>
-                                <span className="text-xl font-bold">5</span>
+                                <span className="text-xl font-bold">{stats.cancelledOrders || 0}</span>
                             </div>
                         </div>
                     </div>
-
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                         <h2 className="text-lg font-bold text-gray-800 mb-4">Xe được thuê nhiều nhất</h2>
                         <div className="space-y-4 mt-4">
-                            <div className="flex items-center">
-                                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-4">
-                                    <Car className="w-6 h-6 text-gray-500" />
-                                </div>
-                                <div className="flex-1">
-                                    <div className="flex justify-between items-center">
-                                        <h4 className="font-medium">Toyota Camry 2.5Q</h4>
-                                        <span className="text-sm text-gray-500">35 lượt thuê</span>
+                            {stats.topRentedCars && stats.topRentedCars.length > 0 ? (
+                                stats.topRentedCars.map((car, index) => (
+                                    <div key={index} className="flex items-center">
+                                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-4">
+                                            <Car className="w-6 h-6 text-gray-500" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex justify-between items-center">
+                                                <h4 className="font-medium">{car.name}</h4>
+                                                <span className="text-sm text-gray-500">{car.rentCount} lượt thuê</span>
+                                            </div>
+                                            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                                                <div 
+                                                    className="bg-blue-600 h-2 rounded-full" 
+                                                    style={{ width: `${car.percentage}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                                        <div className="bg-blue-600 h-2 rounded-full" style={{ width: '85%' }}></div>
-                                    </div>
-                                </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-4 text-gray-500">Chưa có dữ liệu xe được thuê</div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Biểu đồ doanh thu theo tháng */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mt-6">
+                    <h2 className="text-lg font-bold text-gray-800 mb-4">Doanh thu theo tháng</h2>
+                    
+                    <div className="mt-4" style={{ height: '300px' }}>
+                        {stats.monthlyRevenueData && stats.monthlyRevenueData.length > 0 ? (
+                            <div className="flex items-end h-64 space-x-2">
+                                {stats.monthlyRevenueData.map((item, index) => {
+                                    // Tìm giá trị cao nhất để tính tỷ lệ
+                                    const maxValue = Math.max(...stats.monthlyRevenueData.map(d => d.value));
+                                    const heightPercent = maxValue > 0 ? (item.value / maxValue) * 100 : 0;
+                                    
+                                    return (
+                                        <div key={index} className="flex flex-col items-center flex-1">
+                                            <div 
+                                                className="w-full bg-blue-500 rounded-t-lg hover:bg-blue-600 transition-all duration-200"
+                                                style={{ height: `${heightPercent}%` }}
+                                            ></div>
+                                            <div className="text-xs font-medium text-gray-500 mt-2">{item.month}</div>
+                                            <div className="text-xs text-gray-500">{formatCurrency(item.value)}</div>
+                                        </div>
+                                    );
+                                })}
                             </div>
-
-                            <div className="flex items-center">
-                                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-4">
-                                    <Car className="w-6 h-6 text-gray-500" />
-                                </div>
-                                <div className="flex-1">
-                                    <div className="flex justify-between items-center">
-                                        <h4 className="font-medium">Honda Civic RS</h4>
-                                        <span className="text-sm text-gray-500">28 lượt thuê</span>
-                                    </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                                        <div className="bg-blue-600 h-2 rounded-full" style={{ width: '70%' }}></div>
-                                    </div>
-                                </div>
+                        ) : (
+                            <div className="flex items-center justify-center h-full text-gray-400">
+                                Không có dữ liệu doanh thu theo tháng
                             </div>
-
-                            <div className="flex items-center">
-                                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-4">
-                                    <Car className="w-6 h-6 text-gray-500" />
+                        )}
+                    </div>
+                </div>
+                
+                {/* Tỷ lệ hoàn thành đơn hàng */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mt-6">
+                    <h2 className="text-lg font-bold text-gray-800 mb-4">Tỷ lệ hoàn thành đơn hàng</h2>
+                    
+                    <div className="flex items-center justify-center mt-4">
+                        <div className="relative w-64 h-64">
+                            {/* Biểu đồ tròn hiển thị tỷ lệ hoàn thành */}
+                            <svg viewBox="0 0 36 36" className="w-full h-full">
+                                <path
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    fill="none"
+                                    stroke="#eee"
+                                    strokeWidth="3"
+                                />
+                                {(() => {
+                                    const total = (stats.pendingOrders || 0) + (stats.confirmedOrders || 0) + 
+                                                 (stats.completedOrders || 0) + (stats.cancelledOrders || 0);
+                                    const completedPercentage = total > 0 ? Math.round(((stats.completedOrders || 0) / total) * 100) : 0;
+                                    
+                                    // Tính toán SVG arc properties
+                                    const radius = 15.9155;
+                                    const circumference = 2 * Math.PI * radius;
+                                    const strokeDasharray = circumference;
+                                    const strokeDashoffset = circumference - (completedPercentage / 100) * circumference;
+                                    
+                                    return (
+                                        <path
+                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                            fill="none"
+                                            stroke="#48bb78"
+                                            strokeWidth="3"
+                                            strokeDasharray={strokeDasharray}
+                                            strokeDashoffset={strokeDashoffset}
+                                            strokeLinecap="round"
+                                        />
+                                    );
+                                })()}
+                            </svg>
+                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                                <div className="text-3xl font-bold text-gray-800">
+                                    {(() => {
+                                        const total = (stats.pendingOrders || 0) + (stats.confirmedOrders || 0) + 
+                                                     (stats.completedOrders || 0) + (stats.cancelledOrders || 0);
+                                        return total > 0 ? Math.round(((stats.completedOrders || 0) / total) * 100) : 0;
+                                    })()}%
                                 </div>
-                                <div className="flex-1">
-                                    <div className="flex justify-between items-center">
-                                        <h4 className="font-medium">VinFast VF8 Eco</h4>
-                                        <span className="text-sm text-gray-500">22 lượt thuê</span>
-                                    </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                                        <div className="bg-blue-600 h-2 rounded-full" style={{ width: '60%' }}></div>
-                                    </div>
-                                </div>
+                                <div className="text-sm text-gray-500">Hoàn thành</div>
                             </div>
+                        </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 mt-8">
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="text-2xl font-bold text-blue-600">
+                                {(stats.completedOrders || 0) + (stats.confirmedOrders || 0)}
+                            </div>
+                            <div className="text-sm text-gray-500">Đơn hoàn thành & xác nhận</div>
+                        </div>
+                        
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                            <div className="text-2xl font-bold text-red-600">
+                                {(stats.pendingOrders || 0) + (stats.cancelledOrders || 0)}
+                            </div>
+                            <div className="text-sm text-gray-500">Đơn chờ duyệt & hủy</div>
                         </div>
                     </div>
                 </div>
@@ -529,14 +597,14 @@ const AdminDashboard = () => {
         );
     };
 
-    const renderSettings = () => {
-        return (
-            <div className="space-y-6">
-                <h1 className="text-2xl font-bold text-gray-800">Cài đặt hệ thống</h1>
-                {/* Content will go here */}
-            </div>
-        );
-    };
+    // const renderSettings = () => {
+    //     return (
+    //         <div className="space-y-6">
+    //             <h1 className="text-2xl font-bold text-gray-800">Cài đặt hệ thống</h1>
+    //             {/* Content will go here */}
+    //         </div>
+    //     );
+    // };
 
     // Main render
     return (
@@ -603,7 +671,7 @@ const AdminDashboard = () => {
                                 onClick={() => setActiveMenu('customers')}
                             >
                                 <Users className={`w-5 h-5 mr-3 ${activeMenu === 'customers' ? 'text-blue-600' : 'text-gray-400'}`} />
-                                <span className="font-medium">Khách hàng</span>
+                                <span className="font-medium">Người Dùng</span>
                             </button>
 
                             <button
@@ -622,13 +690,13 @@ const AdminDashboard = () => {
                                 <span className="font-medium">Khuyến mãi</span>
                             </button>
 
-                            <button
+                            {/* <button
                                 className={`flex items-center w-full px-3 py-3 text-left rounded-lg ${activeMenu === 'settings' ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-100'}`}
                                 onClick={() => setActiveMenu('settings')}
                             >
                                 <Settings className={`w-5 h-5 mr-3 ${activeMenu === 'settings' ? 'text-blue-600' : 'text-gray-400'}`} />
                                 <span className="font-medium">Cài đặt</span>
-                            </button>
+                            </button> */}
                         </nav>
                     </div>
 

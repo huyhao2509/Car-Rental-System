@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Filter, Download, Plus, Edit, Trash2, CheckCircle, XCircle, AlertCircle, Shield, Users } from 'lucide-react';
+import { Search, Filter, Download, Plus, Edit, Trash2, CheckCircle, XCircle, AlertCircle, Shield, Users, Save } from 'lucide-react';
 import axios from 'axios';
 import Api from '@/utils/Api';
 import { toast } from 'react-toastify';
+import PermissionService from '@/services/PermissionService';
 
 const DashboardManageRoles = () => {
     // State cho active tab
@@ -22,10 +23,11 @@ const DashboardManageRoles = () => {
         { id: 3, tenChucNang: 'Đặt xe', maChucNang: 'BOOKING', moTa: 'Đặt và quản lý đơn đặt xe', trangThai: 'active' },
         { id: 4, tenChucNang: 'Phân quyền', maChucNang: 'ROLE_MANAGE', moTa: 'Phân quyền người dùng', trangThai: 'active' },
         { id: 5, tenChucNang: 'Báo cáo thống kê', maChucNang: 'REPORT', moTa: 'Xem báo cáo và thống kê', trangThai: 'inactive' }
-    ]);
-
-    // State cho phân quyền
-    const [rolePermissions, setRolePermissions] = useState([]);
+    ]);    // State cho phân quyền
+    const [rolePermissions, setRolePermissions] = useState({});
+    const [selectedRoleId, setSelectedRoleId] = useState(null);
+    const [isLoadingPermissions, setIsLoadingPermissions] = useState(false);
+    const [savingPermissions, setSavingPermissions] = useState(false);
 
     // State chung
     const [searchTerm, setSearchTerm] = useState('');
@@ -231,13 +233,95 @@ const DashboardManageRoles = () => {
         } catch (error) {
             toast.error("Đã có lỗi xảy ra!");
         }
-    }
+    }    // END CHỨC NĂNG
 
-    // END CHỨC NĂNG
+    // BEGIN PHÂN QUYỀN
+    const getPermissionsByRole = async (roleId) => {
+        setIsLoadingPermissions(true);
+        try {
+            const res = await PermissionService.getPermissionsByRole(roleId);
+            if (res.status) {
+                // Update the permissions state for this specific role
+                setRolePermissions(prev => ({
+                    ...prev,
+                    [roleId]: res.data
+                }));
+            } else {
+                toast.error(res.message || 'Không thể tải thông tin phân quyền');
+            }
+        } catch (error) {
+            console.error('Error loading permissions:', error);
+            toast.error('Đã có lỗi xảy ra khi tải thông tin phân quyền');
+        } finally {
+            setIsLoadingPermissions(false);
+        }
+    };
+
+    const handleSavePermissions = async () => {
+        if (!selectedRoleId) {
+            toast.warning('Vui lòng chọn một chức vụ');
+            return;
+        }
+        
+        setSavingPermissions(true);
+        try {
+            // Extract the IDs of all selected functions for this role
+            const selectedPermissions = [];
+            rolePermissions[selectedRoleId].forEach(permission => {
+                if (permission.assigned) {
+                    selectedPermissions.push(permission.id);
+                }
+            });
+            
+            const res = await PermissionService.updatePermissions(selectedRoleId, selectedPermissions);
+            if (res.status) {
+                toast.success(res.message || 'Cập nhật phân quyền thành công');
+            } else {
+                toast.error(res.message || 'Không thể cập nhật phân quyền');
+            }
+        } catch (error) {
+            console.error('Error saving permissions:', error);
+            toast.error('Đã có lỗi xảy ra khi cập nhật phân quyền');
+        } finally {
+            setSavingPermissions(false);
+        }
+    };
+
+    // Handle role selection for permissions tab
+    const handleRoleSelect = (roleId) => {
+        setSelectedRoleId(roleId);
+        
+        // If we haven't loaded permissions for this role yet, load them now
+        if (!rolePermissions[roleId]) {
+            getPermissionsByRole(roleId);
+        }
+    };
+
+    // Handle permission toggle
+    const handlePermissionToggle = (functionId, checked) => {
+        if (!selectedRoleId) return;
+        
+        setRolePermissions(prev => ({
+            ...prev,
+            [selectedRoleId]: prev[selectedRoleId].map(func => 
+                func.id === functionId ? { ...func, assigned: checked } : func
+            )
+        }));
+    };
+    // END PHÂN QUYỀN
+
     useEffect(() => {
         getDataChucVus();
         getDataChucNangs();
     }, []);
+    
+    // Set first role as selected when positions are loaded
+    useEffect(() => {
+        if (positions.length > 0 && !selectedRoleId) {
+            setSelectedRoleId(positions[0].id);
+            getPermissionsByRole(positions[0].id);
+        }
+    }, [positions]);
     // Render nội dung tab
     const renderTabContent = () => {
         switch (activeTab) {
@@ -342,58 +426,99 @@ const DashboardManageRoles = () => {
                             </div>
                         </div>
                     </div>
-                );
-
-            case 'permissions':
+                );            case 'permissions':
                 return (
                     <div className="space-y-6">
                         <div className="flex justify-between items-center">
-                            <h1 className="text-2xl font-bold text-gray-800">Phân quyền</h1>
+                            <h1 className="text-2xl font-bold text-gray-800">Phân quyền người dùng</h1>
+                            <button 
+                                className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium flex items-center hover:bg-blue-700 transition duration-300"
+                                onClick={handleSavePermissions}
+                                disabled={savingPermissions || !selectedRoleId}
+                            >
+                                {savingPermissions ? (
+                                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                                ) : (
+                                    <Save className="w-4 h-4 mr-2" />
+                                )}
+                                Lưu phân quyền
+                            </button>
                         </div>
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead>
-                                        <tr className="bg-gray-50 text-left text-gray-500 text-xs uppercase">
-                                            <th className="py-4 px-4 font-medium">Chức năng</th>
-                                            {positions && positions.length > 0 && positions.map(role => (
-                                                <th key={role.id} className="py-4 px-4 font-medium text-center">
-                                                    {role.tenChucVu}
-                                                </th>
+                        
+                        <div className="flex space-x-4">
+                            <div className="w-1/3 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                                <h3 className="text-md font-semibold mb-4 text-gray-700">Danh sách chức vụ</h3>
+                                <div className="space-y-2">
+                                    {positions && positions.length > 0 ? positions.map(role => (
+                                        <button 
+                                            key={role.id} 
+                                            className={`w-full p-3 text-left rounded-lg transition flex items-center ${
+                                                selectedRoleId === role.id 
+                                                ? 'bg-blue-50 text-blue-600 border-blue-200 border' 
+                                                : 'hover:bg-gray-50 border border-gray-100'
+                                            }`}
+                                            onClick={() => handleRoleSelect(role.id)}
+                                        >
+                                            <Users className="w-4 h-4 mr-2" />
+                                            <span className="font-medium">{role.tenChucVu}</span>
+                                        </button>
+                                    )) : (
+                                        <p className="text-gray-500 text-sm">Không có chức vụ nào</p>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            <div className="w-2/3 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                                <div className="p-4 border-b border-gray-100">
+                                    <h3 className="text-md font-semibold text-gray-700">
+                                        {selectedRoleId ? (
+                                            `Quyền của ${positions.find(r => r.id === selectedRoleId)?.tenChucVu || 'Chức vụ đã chọn'}`
+                                        ) : (
+                                            'Vui lòng chọn một chức vụ'
+                                        )}
+                                    </h3>
+                                </div>
+                                
+                                {isLoadingPermissions ? (
+                                    <div className="flex justify-center items-center py-10">
+                                        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+                                    </div>
+                                ) : selectedRoleId && rolePermissions[selectedRoleId] ? (
+                                    <div className="p-4">
+                                        <div className="space-y-3">
+                                            {rolePermissions[selectedRoleId].map(func => (
+                                                <div 
+                                                    key={func.id} 
+                                                    className={`p-3 rounded-lg border ${func.assigned ? 'border-green-100 bg-green-50' : 'border-gray-100'}`}
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center">
+                                                            <Shield className={`w-4 h-4 mr-2 ${func.assigned ? 'text-green-500' : 'text-gray-400'}`} />
+                                                            <span className={`font-medium ${func.assigned ? 'text-green-800' : 'text-gray-800'}`}>
+                                                                {func.tenChucNang}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center">
+                                                            <label className="inline-flex items-center cursor-pointer">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={func.assigned || false}
+                                                                    onChange={(e) => handlePermissionToggle(func.id, e.target.checked)}
+                                                                    className="sr-only peer"
+                                                                />
+                                                                <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             ))}
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100">
-                                        {functions.map(func => (
-                                            <tr key={func.id} className="hover:bg-gray-50">
-                                                <td className="py-3 px-4 text-sm font-medium flex items-center">
-                                                    <Shield className="w-4 h-4 mr-2 text-gray-400" />
-                                                    {func.tenChucNang}
-                                                </td>
-                                                {positions && positions.length > 0 && positions.map(role => (
-                                                    <td key={role.id} className="py-3 px-4 text-sm text-center">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={
-                                                                (rolePermissions[role.id] && rolePermissions[role.id][func.id]) || false
-                                                            }
-                                                            onChange={e => {
-                                                                setRolePermissions(prev => ({
-                                                                    ...prev,
-                                                                    [role.id]: {
-                                                                        ...prev[role.id],
-                                                                        [func.id]: e.target.checked
-                                                                    }
-                                                                }));
-                                                            }}
-                                                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                                                        />
-                                                    </td>
-                                                ))}
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="p-8 text-center text-gray-500">
+                                        Vui lòng chọn một chức vụ để xem và cấu hình quyền
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
