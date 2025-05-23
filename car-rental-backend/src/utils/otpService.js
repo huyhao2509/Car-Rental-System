@@ -1,10 +1,68 @@
 import nodemailer from "nodemailer";
 import {redisClient} from "../config/connectRedis";
 
+/**
+ * Lưu trữ OTP tạm thời trong bộ nhớ
+ * Trong môi trường sản xuất, nên lưu trong cơ sở dữ liệu hoặc Redis
+ */
+const otpStore = new Map();
 
-// Tạo OTP ngẫu nhiên 6 chữ số
-export const generateOTP = () => {
+/**
+ * Tạo mã OTP ngẫu nhiên gồm 6 chữ số
+ * @returns {string} Mã OTP
+ */
+const generateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+/**
+ * Lưu mã OTP cho email
+ * @param {string} email Email của người dùng
+ * @param {string} otp Mã OTP
+ * @param {number} expiresIn Thời gian hết hạn (miligiây)
+ */
+const storeOTP = (email, otp, expiresIn = 5 * 60 * 1000) => { // Mặc định 5 phút
+    const expiresAt = Date.now() + expiresIn;
+    otpStore.set(email.toLowerCase(), { otp, expiresAt });
+    
+    // Tự động xóa OTP sau khi hết hạn
+    setTimeout(() => {
+        if (otpStore.has(email.toLowerCase())) {
+            otpStore.delete(email.toLowerCase());
+        }
+    }, expiresIn);
+};
+
+/**
+ * Xác thực mã OTP
+ * @param {string} email Email của người dùng
+ * @param {string} otp Mã OTP cần xác thực
+ * @returns {boolean} Kết quả xác thực
+ */
+const verifyOTP = (email, otp) => {
+    const lowerEmail = email.toLowerCase();
+    const otpData = otpStore.get(lowerEmail);
+    
+    // Kiểm tra OTP tồn tại không
+    if (!otpData) {
+        return false;
+    }
+    
+    // Kiểm tra hết hạn
+    if (Date.now() > otpData.expiresAt) {
+        otpStore.delete(lowerEmail);
+        return false;
+    }
+    
+    // Kiểm tra khớp OTP
+    const isValid = otpData.otp === otp;
+    
+    // Nếu OTP hợp lệ, xóa khỏi store
+    if (isValid) {
+        otpStore.delete(lowerEmail);
+    }
+    
+    return isValid;
 };
 
 // Lưu OTP vào redis với thời gian hết hạn (5 phút)
@@ -63,18 +121,8 @@ export const generateAndSendOTP = async (email) => {
     }
 };
 
-// Xác thực OTP
-export const verifyOTP = async (email, otp) => {
-    try {
-        const savedOTP = await redisClient.getAsync(`${email}_otp`);
-        if (savedOTP === otp) {
-            await redisClient.delAsync(`${email}_otp`);
-            return true;
-        } else {
-            return false;
-        }
-    } catch (error) {
-        console.error("Error verifying OTP:", error);
-        throw new Error("Failed to verify OTP");
-    }
+module.exports = {
+    generateOTP,
+    storeOTP,
+    verifyOTP
 };

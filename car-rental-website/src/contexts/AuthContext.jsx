@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Api from '@/utils/Api';
 
 // Tạo context
 const AuthContext = createContext();
@@ -101,11 +102,11 @@ export const AuthProvider = ({ children }) => {
     // Gửi OTP
     const sendOTP = async (email) => {
         try {
-            const res = await axios.post('/api/auth/send-otp', { email });
+            const res = await Api.post('/nguoi-dung/send-otp', { email });
             return res.data;
         } catch (error) {
             throw new Error(
-                error.res?.data?.message || 'Không thể gửi OTP'
+                error.response?.data?.message || 'Không thể gửi OTP'
             );
         }
     };
@@ -113,36 +114,55 @@ export const AuthProvider = ({ children }) => {
     // Xác thực OTP
     const verifyOTP = async (email, otp) => {
         try {
-            const res = await axios.post('/api/auth/verify-otp', {
+            const res = await Api.post('/nguoi-dung/verify-otp', {
                 email,
                 otp
             });
 
             if (res.data.success) {
                 // Lưu token vào localStorage
-                localStorage.setItem('token', res.data.token);
+                localStorage.setItem('token', res.data.data.token);
 
                 // Thiết lập token trong header
-                axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+                axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.data.token}`;
 
                 // Cập nhật trạng thái
-                setCurrentUser(res.data.user);
+                setCurrentUser(res.data.data.user);
                 setIsAuthenticated(true);
-
-                // Xử lý chuyển hướng từ server nếu có
-                if (res.data.redirectTo) {
-                    // Thêm thông tin về chuyển hướng vào res
-                    return {
-                        ...res.data,
-                        redirectReady: true // Flag để biết có thể chuyển hướng
-                    };
-                }
             }
 
             return res.data;
         } catch (error) {
             throw new Error(
-                error.res?.data?.message || 'OTP không hợp lệ'
+                error.response?.data?.message || 'OTP không hợp lệ'
+            );
+        }
+    };
+
+    // Quên mật khẩu
+    const forgotPassword = async (email) => {
+        try {
+            const res = await Api.post('/nguoi-dung/forgot-password', { email });
+            return res.data;
+        } catch (error) {
+            throw new Error(
+                error.response?.data?.message || 'Không thể xử lý yêu cầu quên mật khẩu'
+            );
+        }
+    };
+
+    // Đặt lại mật khẩu
+    const resetPassword = async (email, oldPassword, newPassword) => {
+        try {
+            const res = await Api.post('/nguoi-dung/reset-password', {
+                email,
+                oldPassword,
+                newPassword
+            });
+            return res.data;
+        } catch (error) {
+            throw new Error(
+                error.response?.data?.message || 'Không thể đặt lại mật khẩu'
             );
         }
     };
@@ -173,17 +193,8 @@ export const AuthProvider = ({ children }) => {
     // Cập nhật thông tin người dùng
     const updateUserInfo = async (userData) => {
         try {
-            const token = localStorage.getItem('token');
-            if (!token) throw new Error('Không tìm thấy token');
-
-            const res = await axios.put('/api/users/profile', userData, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
-
+            const res = await Api.post('/nguoi-dung/profile/update', userData);
             if (res.data.success) {
-                // Cập nhật thông tin người dùng trong context
                 setCurrentUser({
                     ...currentUser,
                     ...res.data.user
@@ -231,7 +242,9 @@ export const AuthProvider = ({ children }) => {
         isAdmin,
         redirectBasedOnRole,
         updateUserInfo,
-        refreshUserInfo
+        refreshUserInfo,
+        forgotPassword,
+        resetPassword
     };
 
     return (

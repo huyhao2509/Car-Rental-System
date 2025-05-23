@@ -74,7 +74,7 @@ const Cart = () => {
         });
         if (res.data.status) {
             toast.success(res.data.message);
-            navigate('/payment', { state: { listDonHang: res.data.data } });
+            navigate('/donhang', { state: { listDonHang: res.data.data } });
         } else {
             toast.error(res.data.message);
         }

@@ -6,10 +6,8 @@ const { ChucVu, ChucNang, ChiTietPhanQuyen } = require('../models');
  */
 const verifyToken = (req, res, next) => {
     try {
-        // Lấy token từ header Authorization
         const authHeader = req.header('Authorization');
         const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-
         if (!token) {
             return res.status(401).json({
                 status: false,
@@ -25,8 +23,6 @@ const verifyToken = (req, res, next) => {
                     message: 'Token không hợp lệ hoặc đã hết hạn'
                 });
             }
-
-            // Lưu thông tin user vào request để sử dụng ở các middleware tiếp theo
             req.user = decoded;
             next();
         });
@@ -46,7 +42,6 @@ const verifyToken = (req, res, next) => {
 const checkPermission = (permissionCode) => {
     return async (req, res, next) => {
         try {
-            // Kiểm tra đã có thông tin user chưa (đã qua middleware verifyToken)
             if (!req.user) {
                 return res.status(401).json({
                     status: false,
@@ -54,15 +49,12 @@ const checkPermission = (permissionCode) => {
                 });
             }
 
-            // Lấy ID chức vụ của người dùng từ token
             const chucVuId = req.user.idChucVu;
             
-            // Admin có toàn quyền
             if (chucVuId === 1) {
                 return next();
             }
 
-            // Lấy thông tin chức năng dựa trên mã quyền
             const chucNang = await ChucNang.findOne({
                 where: {
                     tenChucNang: permissionCode,
@@ -77,7 +69,6 @@ const checkPermission = (permissionCode) => {
                 });
             }
 
-            // Kiểm tra quyền trong bảng ChiTietPhanQuyen
             const hasPermission = await ChiTietPhanQuyen.findOne({
                 where: {
                     idChucVu: chucVuId,
@@ -92,7 +83,6 @@ const checkPermission = (permissionCode) => {
                 });
             }
 
-            // Nếu có quyền, cho phép tiếp tục
             next();
         } catch (error) {
             return res.status(500).json({

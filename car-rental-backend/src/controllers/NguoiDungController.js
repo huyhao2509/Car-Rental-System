@@ -2,6 +2,10 @@ const Controller = require('./Controller');
 const { NguoiDung } = require('../models/index.js');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
+const path = require('path');
+const { generateOTP, storeOTP, verifyOTP } = require('../utils/otpService');
+const { sendOTPEmail, sendPasswordResetEmail } = require('../utils/emailService');
 
 class NguoiDungController extends Controller {
     constructor() {
@@ -53,12 +57,11 @@ class NguoiDungController extends Controller {
     async login(req, res) {
         try {
             const { email, password } = req.body;
-
             const nguoiDung = await NguoiDung.findOne({ 
                 where: { email },
                 include: ['ChucVu']
             });
-
+            
             if (!nguoiDung) {
                 return res.status(400).json({
                     status: false,
@@ -85,7 +88,7 @@ class NguoiDungController extends Controller {
                 { 
                     id: nguoiDung.id,
                     email: nguoiDung.email,
-                    chucVu: nguoiDung.ChucVu.tenChucVu
+                    idChucVu: nguoiDung.idChucVu
                 },
                 process.env.JWT_SECRET,
                 { expiresIn: '24h' }
@@ -289,6 +292,496 @@ class NguoiDungController extends Controller {
         } catch (error) {
             return res.status(500).json({
                 status: false,
+                message: 'Lỗi server',
+                error: error.message
+            });
+        }
+    }
+
+    async updateProfile(req, res) {
+        try {
+            const idNguoiDung = req.user.id;
+
+            const nguoiDung = await this.model.findOne({ where: { id: idNguoiDung } });
+            if (!nguoiDung) {
+                return res.status(404).json({
+                    status: false,
+                    message: 'Người dùng không tồn tại'
+                });
+            }
+
+            const { hoTen, soDienThoai, canCuocCongDan } = req.body;
+            const updateData = {};
+
+            if (hoTen !== undefined) updateData.hoTen = hoTen;
+            if (soDienThoai !== undefined) updateData.soDienThoai = soDienThoai;
+            if (canCuocCongDan !== undefined) updateData.canCuocCongDan = canCuocCongDan;
+
+            if (req.files) {
+                console.log("Files được upload:", req.files);
+                const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
+                if (req.files.anhCanCuoc && req.files.anhCanCuoc[0]) {
+                    updateData.anhCanCuoc = `/uploads/documents/${req.files.anhCanCuoc[0].filename}`;
+                    console.log("anhCanCuoc path:", updateData.anhCanCuoc);
+                }
+                if (req.files.anhBangLaiXe && req.files.anhBangLaiXe[0]) {
+                    updateData.anhBangLaiXe = `/uploads/documents/${req.files.anhBangLaiXe[0].filename}`;
+                    console.log("anhBangLaiXe path:", updateData.anhBangLaiXe);
+                }
+            }
+            
+            await nguoiDung.update(updateData);
+
+            const { password: _, ...updatedUser } = nguoiDung.toJSON();
+
+            return res.status(200).json({
+                status: true,
+                message: 'Cập nhật thông tin cá nhân thành công',
+                data: updatedUser
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: false,
+                message: 'Lỗi server',
+                error: error.message
+            });
+        }
+    }
+
+    async getProfile(req, res) {
+        try {
+            const idNguoiDung = req.user.id;
+
+            const nguoiDung = await this.model.findOne({ 
+                where: { id: idNguoiDung },
+                include: ['ChucVu']
+            });
+            if (!nguoiDung) {
+                return res.status(400).json({
+                    status: false,
+                    message: 'Người dùng không tồn tại'
+                });
+            }
+
+            return res.status(200).json({
+                status  : true,
+                data    : nguoiDung,
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: false,
+                message: 'Lỗi server',
+                error: error.message
+            });
+        }
+    }
+
+    async uploadAvatar(req, res) {
+        try {
+            const idNguoiDung = req.user.id;
+
+            const nguoiDung = await this.model.findOne({ where: { id: idNguoiDung } });
+            if (!nguoiDung) {
+                return res.status(400).json({
+                    status: false,
+                    message: 'Người dùng không tồn tại'
+                });
+            }
+
+            if (req.file) {
+                console.log("Avatar file được upload:", req.file);
+                const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
+                const avatarPath = `/uploads/avatars/${req.file.filename}`;
+                
+                nguoiDung.anhDaiDien = avatarPath;
+                console.log("Avatar path:", avatarPath);
+                await nguoiDung.save();
+
+                const { password: _, ...updatedUser } = nguoiDung.toJSON();
+
+                return res.status(200).json({
+                    status: true,
+                    message: 'Cập nhật ảnh đại diện thành công',
+                    data: updatedUser
+                });
+            } else {
+                return res.status(400).json({
+                    status: false,
+                    message: 'Không tìm thấy file ảnh đại diện'
+                });
+            }
+        } catch (error) {
+            return res.status(500).json({
+                status: false,
+                message: 'Lỗi server',
+                error: error.message
+            });
+        }
+    }
+
+    async deleteCanCuoc(req, res) {
+        try {
+            const idNguoiDung = req.user.id;
+
+            const nguoiDung = await this.model.findOne({ where: { id: idNguoiDung } });
+            if (!nguoiDung) {
+                return res.status(404).json({
+                    status: false,
+                    message: 'Người dùng không tồn tại'
+                });
+            }
+
+            if (!nguoiDung.anhCanCuoc) {
+                return res.status(400).json({
+                    status: false,
+                    message: 'Không có ảnh căn cước để xóa'
+                });
+            }
+
+            const filePath = path.join(__dirname, '../../public', nguoiDung.anhCanCuoc);
+            
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+                console.log('Đã xóa file:', filePath);
+            } else {
+                console.log('File không tồn tại:', filePath);
+            }
+
+            nguoiDung.anhCanCuoc = null;
+            await nguoiDung.save();
+
+            const { password: _, ...updatedUser } = nguoiDung.toJSON();
+
+            return res.status(200).json({
+                status: true,
+                message: 'Xóa ảnh căn cước thành công',
+                data: updatedUser
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: false,
+                message: 'Lỗi server',
+                error: error.message
+            });
+        }
+    }
+
+    async deleteBangLai(req, res) {
+        try {
+            const idNguoiDung = req.user.id;
+
+            const nguoiDung = await this.model.findOne({ where: { id: idNguoiDung } });
+            if (!nguoiDung) {
+                return res.status(404).json({
+                    status: false,
+                    message: 'Người dùng không tồn tại'
+                });
+            }
+
+            if (!nguoiDung.anhBangLaiXe) {
+                return res.status(400).json({
+                    status: false,
+                    message: 'Không có ảnh bằng lái để xóa'
+                });
+            }
+
+            const filePath = path.join(__dirname, '../../public', nguoiDung.anhBangLaiXe);
+            
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+                console.log('Đã xóa file bằng lái:', filePath);
+            } else {
+                console.log('File bằng lái không tồn tại:', filePath);
+            }
+
+            nguoiDung.anhBangLaiXe = null;
+            await nguoiDung.save();
+
+            const { password: _, ...updatedUser } = nguoiDung.toJSON();
+
+            return res.status(200).json({
+                status: true,
+                message: 'Xóa ảnh bằng lái thành công',
+                data: updatedUser
+            });
+        } catch (error) {
+            console.error('Lỗi khi xóa ảnh bằng lái:', error);
+            return res.status(500).json({
+                status: false,
+                message: 'Lỗi server',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Gửi mã OTP tới email
+     * @param {Object} req Request
+     * @param {Object} res Response
+     */
+    async sendOTP(req, res) {
+        try {
+            const { email } = req.body;
+
+            if (!email) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Email không được để trống'
+                });
+            }
+
+            // Kiểm tra email có tồn tại trong hệ thống không
+            const user = await NguoiDung.findOne({ where: { email } });
+            if (!user) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Email chưa được đăng ký trong hệ thống'
+                });
+            }
+
+            // Nếu tài khoản bị khóa
+            if (user.trangThai !== 1) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Tài khoản đã bị khóa, vui lòng liên hệ quản trị viên'
+                });
+            }
+
+            // Tạo OTP ngẫu nhiên
+            const otp = generateOTP();
+            
+            // Lưu OTP với email
+            storeOTP(email, otp);
+            
+            // Gửi OTP qua email
+            const emailResult = await sendOTPEmail(email, otp);
+            
+            if (!emailResult.success) {
+                return res.status(500).json({
+                    success: false,
+                    message: 'Không thể gửi email OTP',
+                    error: emailResult.error
+                });
+            }
+            
+            return res.status(200).json({
+                success: true,
+                message: 'Mã OTP đã được gửi tới email của bạn'
+            });
+        } catch (error) {
+            console.error('Lỗi khi gửi OTP:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Lỗi server',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Xác thực OTP và đăng nhập
+     * @param {Object} req Request
+     * @param {Object} res Response
+     */
+    async verifyOTP(req, res) {
+        try {
+            const { email, otp } = req.body;
+
+            if (!email || !otp) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Email và OTP không được để trống'
+                });
+            }
+
+            // Xác thực OTP
+            const isValid = verifyOTP(email, otp);
+            
+            if (!isValid) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Mã OTP không hợp lệ hoặc đã hết hạn'
+                });
+            }
+            
+            // Tìm người dùng theo email
+            const nguoiDung = await NguoiDung.findOne({ 
+                where: { email },
+                include: ['ChucVu']
+            });
+            
+            if (!nguoiDung) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Người dùng không tồn tại'
+                });
+            }
+            
+            if (nguoiDung.trangThai !== 1) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Tài khoản đã bị khóa'
+                });
+            }
+            
+            // Tạo JWT token
+            const token = jwt.sign(
+                { 
+                    id: nguoiDung.id,
+                    email: nguoiDung.email,
+                    idChucVu: nguoiDung.idChucVu
+                },
+                process.env.JWT_SECRET,
+                { expiresIn: '24h' }
+            );
+            
+            const { password: _, ...userWithoutPassword } = nguoiDung.toJSON();
+            
+            return res.status(200).json({
+                success: true,
+                message: 'Xác thực OTP thành công',
+                data: {
+                    token,
+                    user: userWithoutPassword
+                }
+            });
+        } catch (error) {
+            console.error('Lỗi khi xác thực OTP:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Lỗi server',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Xử lý quên mật khẩu
+     * @param {Object} req Request
+     * @param {Object} res Response
+     */
+    async forgotPassword(req, res) {
+        try {
+            const { email } = req.body;
+
+            if (!email) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Email không được để trống'
+                });
+            }
+
+            // Kiểm tra email có tồn tại trong hệ thống không
+            const user = await NguoiDung.findOne({ where: { email } });
+            if (!user) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Email chưa được đăng ký trong hệ thống'
+                });
+            }
+
+            // Nếu tài khoản bị khóa
+            if (user.trangThai !== 1) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Tài khoản đã bị khóa, vui lòng liên hệ quản trị viên'
+                });
+            }
+
+            // Tạo mật khẩu ngẫu nhiên mới
+            const newPassword = Math.random().toString(36).slice(-8);
+            
+            // Hash mật khẩu mới
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(newPassword, salt);
+            
+            // Cập nhật mật khẩu mới vào database
+            user.password = hashedPassword;
+            await user.save();
+            
+            // Gửi mật khẩu mới qua email
+            const emailResult = await sendPasswordResetEmail(email, newPassword);
+            
+            if (!emailResult.success) {
+                return res.status(500).json({
+                    success: false,
+                    message: 'Không thể gửi email chứa mật khẩu mới',
+                    error: emailResult.error
+                });
+            }
+            
+            return res.status(200).json({
+                success: true,
+                message: 'Mật khẩu mới đã được gửi tới email của bạn'
+            });
+        } catch (error) {
+            console.error('Lỗi khi xử lý quên mật khẩu:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Lỗi server',
+                error: error.message
+            });
+        }
+    }
+
+    /**
+     * Đặt lại mật khẩu
+     * @param {Object} req Request
+     * @param {Object} res Response
+     */
+    async resetPassword(req, res) {
+        try {
+            const { email, oldPassword, newPassword } = req.body;
+
+            if (!email || !oldPassword || !newPassword) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Thiếu thông tin cần thiết'
+                });
+            }
+
+            // Tìm người dùng theo email
+            const user = await NguoiDung.findOne({ where: { email } });
+            if (!user) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Người dùng không tồn tại'
+                });
+            }
+
+            // Nếu tài khoản bị khóa
+            if (user.trangThai !== 1) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Tài khoản đã bị khóa'
+                });
+            }
+
+            // Kiểm tra mật khẩu cũ
+            const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+            if (!isPasswordValid) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Mật khẩu cũ không chính xác'
+                });
+            }
+
+            // Hash mật khẩu mới
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(newPassword, salt);
+            
+            // Cập nhật mật khẩu mới
+            user.password = hashedPassword;
+            await user.save();
+            
+            return res.status(200).json({
+                success: true,
+                message: 'Mật khẩu đã được cập nhật thành công'
+            });
+        } catch (error) {
+            console.error('Lỗi khi đặt lại mật khẩu:', error);
+            return res.status(500).json({
+                success: false,
                 message: 'Lỗi server',
                 error: error.message
             });

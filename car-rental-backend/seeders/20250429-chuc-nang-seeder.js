@@ -340,7 +340,6 @@ module.exports = {
                 thoiGianTao: new Date(),
                 thoiGianSua: new Date()
             },
-            // Quyền Cài Đặt
         ], {});
 
         // Bật lại kiểm tra khóa ngoại

@@ -3,7 +3,7 @@ module.exports ={
     "vnp_HashSecret":"MAD4SA08JZR9WMBTB2CATVM585TXZF2G",
     "vnp_Url":"https://sandbox.vnpayment.vn/paymentv2/vpcpay.html",
     "vnp_Api":"https://sandbox.vnpayment.vn/merchant_webapi/api/transaction",
-    "vnp_ReturnUrl": "http://localhost:3000/order/vnpay_return"
+    "vnp_ReturnUrl": "https://quanlynhansunfcbe.deloydz.com/donhang"
 };
 
 // NCB

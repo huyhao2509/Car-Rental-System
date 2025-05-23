@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import axios from 'axios';
 import Api from "@/utils/Api";
 import { toast } from "react-toastify";
+import PaymentPage from './PaymentPage';
 
 // Định nghĩa các trạng thái đơn hàng
 const ORDER_STATUS = {
@@ -28,6 +29,7 @@ const DonHang = () => {
     const [appliedPromo, setAppliedPromo] = useState(null);
     const [promoError, setPromoError] = useState('');
     const [isCheckingPromo, setIsCheckingPromo] = useState(false);
+    const [paymentWarning, setPaymentWarning] = useState('');
 
     const fetchOrders = async () => {
         try {
@@ -100,19 +102,23 @@ const DonHang = () => {
         setCurrentPaymentOrder(null);
     };
 
+    // Hàm tạo link thanh toán (gọi đúng API theo phương thức thanh toán)
     const createPaymentUrl = async (listDonHang) => {
+        if (paymentMethod === 'vnpay' || paymentMethod === 'momo') {
+            alert('Phương thức đang được phát triển. Vui lòng chọn phương thức khác.');
+            return;
+        }
         try {
+            let apiUrl = 'client/don-hang/create-payment-url';
             const response = await Api.post(
-                'client/don-hang/create-payment-url',
+                apiUrl,
                 {
                     listDonHang: listDonHang,
                     maKhuyenMai: appliedPromo ? appliedPromo.maKhuyenMai : '',
                     phuongThucThanhToan: paymentMethod
                 }
             );
-
             if (response.data.status) {
-                // Chuyển hướng người dùng đến trang thanh toán VNPAY
                 window.location.href = response.data.data.paymentUrl;
             }
         } catch (error) {
@@ -131,20 +137,8 @@ const DonHang = () => {
             setIsCheckingPromo(true);
             setPromoError('');
 
-            const orderIds = currentPaymentOrder 
-                ? [currentPaymentOrder.id] 
-                : selectedOrders;
-            
-            const totalAmount = currentPaymentOrder 
-                ? currentPaymentOrder.thanhTien 
-                : orders
-                    .filter(order => selectedOrders.includes(order.id))
-                    .reduce((sum, order) => sum + order.thanhTien, 0);
-
-            const response = await Api.post('client/khuyen-mai/kiem-tra-khuyen-mai', {
-                maKhuyenMai: promoCode,
-                danhSachDonHang: orderIds,
-                tongTien: totalAmount
+            const response = await Api.post('client/don-hang/get-ma-khuyen-mai', {
+                maKhuyenMai: promoCode.trim()
             });
 
             if (response.data.status) {
@@ -168,7 +162,22 @@ const DonHang = () => {
         setPromoError('');
     };
 
+    const handlePaymentMethodChange = (e) => {
+        setPaymentMethod(e.target.value);
+        if (e.target.value === 'vnpay' || e.target.value === 'momo') {
+            setPaymentWarning('Phương thức đang được phát triển');
+        } else {
+            setPaymentWarning('');
+        }
+    };
+
     const handlePaymentConfirm = async () => {
+        if (paymentMethod === 'banking') {
+            // Chuyển sang trang thanh toán
+            navigate('/don-hang/thanh-toan', { state: { order: currentPaymentOrder } });
+            handleClosePaymentModal();
+            return;
+        }
         try {
             setIsLoading(true);
             let listDonHang = [];
@@ -219,23 +228,20 @@ const DonHang = () => {
         }).format(amount);
     };
 
-    // Hàm tính tổng tiền sau khi áp dụng khuyến mãi
+    // Hàm tính tổng tiền sau khi áp dụng khuyến mãi (chỉ tính cho đơn hàng trạng thái 1)
     const calculateFinalAmount = () => {
-        const totalAmount = currentPaymentOrder 
-            ? currentPaymentOrder.thanhTien 
+        const totalAmount = currentPaymentOrder
+            ? currentPaymentOrder.thanhTien
             : orders
-                .filter(order => selectedOrders.includes(order.id))
+                .filter(order => selectedOrders.includes(order.id) && order.trangThai === 1)
                 .reduce((sum, order) => sum + order.thanhTien, 0);
-        
         if (!appliedPromo) return totalAmount;
-        
         if (appliedPromo.phanTramGiam > 0) {
             const discountAmount = totalAmount * appliedPromo.phanTramGiam / 100;
             return totalAmount - discountAmount;
         } else if (appliedPromo.soTien > 0) {
             return totalAmount - appliedPromo.soTien;
         }
-        
         return totalAmount;
     };
 
@@ -376,7 +382,7 @@ const DonHang = () => {
                                                     className="w-full h-40 object-cover rounded-md"
                                                     onError={(e) => {
                                                         e.target.onerror = null;
-                                                        e.target.src = "https://via.placeholder.com/150";
+                                                        e.target.src = "";
                                                     }}
                                                 />
                                             </div>
@@ -541,7 +547,7 @@ const DonHang = () => {
                                     <p className="text-gray-600 mb-4">
                                         Tổng số tiền: {formatCurrency(
                                             orders
-                                                .filter(order => selectedOrders.includes(order.id))
+                                                .filter(order => selectedOrders.includes(order.id) && order.trangThai === 1)
                                                 .reduce((sum, order) => sum + order.thanhTien, 0)
                                         )}
                                     </p>
@@ -550,27 +556,40 @@ const DonHang = () => {
 
                             <div className="space-y-3">
                                 <p className="font-medium text-gray-700">Chọn phương thức thanh toán:</p>
-                                <div className="flex items-center space-x-2">
-                                    <input 
-                                        type="radio" 
-                                        id="banking" 
-                                        name="payment" 
-                                        className="h-4 w-4 accent-blue-500" 
-                                        checked={paymentMethod === 'banking'}
-                                        onChange={() => setPaymentMethod('banking')}
-                                    />
-                                    <label htmlFor="banking" className="text-gray-700">Internet Banking</label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <input 
-                                        type="radio" 
-                                        id="vnpay" 
-                                        name="payment" 
-                                        className="h-4 w-4 accent-blue-500"
-                                        checked={paymentMethod === 'vnpay'}
-                                        onChange={() => setPaymentMethod('vnpay')}
-                                    />
-                                    <label htmlFor="vnpay" className="text-gray-700">VNPay</label>
+                                <div>
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            name="paymentMethod"
+                                            value="banking"
+                                            checked={paymentMethod === 'banking'}
+                                            onChange={handlePaymentMethodChange}
+                                        />
+                                        Internet Banking
+                                    </label>
+                                    <label style={{ marginLeft: 16 }}>
+                                        <input
+                                            type="radio"
+                                            name="paymentMethod"
+                                            value="vnpay"
+                                            checked={paymentMethod === 'vnpay'}
+                                            onChange={handlePaymentMethodChange}
+                                        />
+                                        VNPay
+                                    </label>
+                                    <label style={{ marginLeft: 16 }}>
+                                        <input
+                                            type="radio"
+                                            name="paymentMethod"
+                                            value="momo"
+                                            checked={paymentMethod === 'momo'}
+                                            onChange={handlePaymentMethodChange}
+                                        />
+                                        Momo
+                                    </label>
+                                    {paymentWarning && (
+                                        <div style={{ color: 'red', marginTop: 8 }}>{paymentWarning}</div>
+                                    )}
                                 </div>
                             </div>
 
@@ -674,8 +693,8 @@ const DonHang = () => {
                             </button>
                             <button
                                 onClick={handlePaymentConfirm}
-                                className={`px-4 py-2 text-white rounded-md ${isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}`}
-                                disabled={isLoading}
+                                className={`px-4 py-2 text-white rounded-md ${paymentMethod === 'vnpay' || paymentMethod === 'momo' || isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}`}
+                                disabled={paymentMethod === 'vnpay' || paymentMethod === 'momo' || isLoading}
                             >
                                 {isLoading ? 'Đang xử lý...' : 'Xác nhận thanh toán'}
                             </button>

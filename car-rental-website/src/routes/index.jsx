@@ -8,6 +8,7 @@ import DefaultLayout from '@/layouts/DefaultLayout';
 // Auth Pages
 import LoginPage from '@/pages/client/auth/LoginPage';
 import RegisterPage from '@/pages/client/auth/RegisterPage';
+import ForgotPasswordPage from '@/pages/client/auth/ForgotPasswordPage';
 
 // Client Pages
 import HomePage from '@/pages/client/home/Home';
@@ -22,6 +23,7 @@ import BookingPage from '@/pages/client/reservations/Booking';
 import MomoPayment from '@/pages/client/payment/MomoPayment';
 import DonHang from '@/pages/client/donHang';
 import Cart from '@/pages/client/cars/Cart';
+import PaymentPage from '@/pages/client/donHang/PaymentPage';
 
 // Admin Pages
 import AdminDashboard from '@/pages/admin/AdminDashboard';
@@ -37,6 +39,7 @@ const AppRoutes = () => {
             {/* Public Routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
             {/* Main Layout Routes */}
             <Route path="/" element={<DefaultLayout />}>
@@ -54,6 +57,7 @@ const AppRoutes = () => {
                     <Route path="payment" element={<MomoPayment />} />
                     <Route path="cart" element={<Cart />} />
                     <Route path="donhang" element={<DonHang />} />
+                    <Route path="don-hang/thanh-toan" element={<PaymentPage />} />
                 </Route>
             </Route>
 

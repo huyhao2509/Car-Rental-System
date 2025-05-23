@@ -14,6 +14,7 @@ import DashboardManageBrands from "./DashboardManageBrands";
 import DashboardManageCarTypes from "./DashboardManageCarTypes";
 import DashboardManageCars from "./DashboardManageCars";
 import DashboardManageRoles from "./DashboardManageRoles";
+import Api from '@/utils/Api';
 
 const AdminDashboard = () => {
     // State để quản lý menu active
@@ -35,6 +36,21 @@ const AdminDashboard = () => {
         monthlyRevenue: 135000000,
         lastMonthRevenue: 120000000
     });
+
+    // Fetch dashboard stats từ API
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const res = await Api.get('/admin/dashboard-stats');
+                if (res.data.status) {
+                    setStats(res.data.data);
+                }
+            } catch (err) {
+                // Có thể toast lỗi hoặc log
+            }
+        };
+        fetchStats();
+    }, []);
 
     // Mock data cho danh sách đơn hàng
     const [orders, setOrders] = useState([

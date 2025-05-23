@@ -4,12 +4,15 @@ import cors from "cors";
 import { connectDB } from "./src/config/connectDB.js";
 import { connectRedis } from "./src/config/connectRedis.js";
 import initRoutes from "./src/routes/index.js";
+const path = require('path');
+// Import schedule fetch MB transactions
+// import './src/services/mbTransactionScheduler.js';
 
-// Phải gọi config() trước khi sử dụng biến môi trường
+
 dotenv.config();
 
 const app = express();
-
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(
     cors({
         origin: process.env.CLIENT_URL,

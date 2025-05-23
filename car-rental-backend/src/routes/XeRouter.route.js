@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const XeRouterController = require('../controllers/XeRouterController');
-// const { verifyToken, checkPermission } = require('../middlewares/auth');
+const { verifyToken, checkPermission } = require('../middlewares/auth');
 router.get('/get-all', XeRouterController.getAll.bind(XeRouterController));
 router.get('/detail/:id', XeRouterController.getDetail.bind(XeRouterController));
 // Route công khai - không cần đăng nhập

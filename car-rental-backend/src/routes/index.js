@@ -9,8 +9,6 @@ const DonHangRouter = require('./DonHang.route');
 const KhuyenMaiRouter = require('./KhuyenMai.route');
 
 const initRoutes = (app) => {
-
-
     app.use('/api/admin/hang-xe', hangXeRouter);
     app.use('/api/admin/loai-xe', loaiXeRouter);
     app.use('/api/admin/chuc-vu', phanQuyenRouter);

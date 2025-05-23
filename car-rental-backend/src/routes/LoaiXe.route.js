@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const LoaiXeController = require('../controllers/LoaiXeController');
-// const { verifyToken, checkPermission } = require('../middlewares/auth');
+const { verifyToken, checkPermission } = require('../middlewares/auth');
 
 // Route công khai - không cần đăng nhập
 // router.get('/', LoaiXeController.getAll);
@@ -9,7 +9,7 @@ const LoaiXeController = require('../controllers/LoaiXeController');
 // router.get('/:id', LoaiXeController.getById);
 
 // // Route yêu cầu đăng nhập và phân quyền
-// router.use(verifyToken);
+router.use(verifyToken);
 router.get('/get-all', LoaiXeController.getAll.bind(LoaiXeController));
 router.post('/update', LoaiXeController.update.bind(LoaiXeController));
 router.post('/create', LoaiXeController.create.bind(LoaiXeController));
