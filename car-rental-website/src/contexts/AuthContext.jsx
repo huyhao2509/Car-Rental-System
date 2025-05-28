@@ -106,7 +106,7 @@ export const AuthProvider = ({ children }) => {
             return res.data;
         } catch (error) {
             throw new Error(
-                error.response?.data?.message || 'Không thể gửi OTP'
+                error.data?.message || 'Không thể gửi OTP'
             );
         }
     };

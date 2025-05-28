@@ -133,7 +133,7 @@ const DocumentUpload = ({ user, onProfileDataChange }) => {
         
         // Thử các cách khác nhau để tạo URL
         // 1. Sử dụng domain từ API
-        const apiBaseUrl = 'http://localhost:3000';
+        const apiBaseUrl = 'http://localhost:5000';
         const directUrl = `${apiBaseUrl}${path}`;
         
         console.log("Đường dẫn gốc:", path);
