@@ -174,7 +174,7 @@ const DonHang = () => {
     const handlePaymentConfirm = async () => {
         if (paymentMethod === 'banking') {
             // Chuyển sang trang thanh toán
-            navigate('/don-hang/thanh-toan', { state: { order: currentPaymentOrder } });
+            navigate('/don-hang/thanh-toan', { state: { order: currentPaymentOrder, appliedPromo: appliedPromo } });
             handleClosePaymentModal();
             return;
         }

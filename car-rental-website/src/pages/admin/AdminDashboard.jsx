@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
     LayoutDashboard, Car, Users, FileText, CreditCard, Tag,
     Shield, AlertTriangle, BarChart2, Settings, LogOut, ChevronDown,
@@ -15,6 +15,7 @@ import DashboardManageCarTypes from "./DashboardManageCarTypes";
 import DashboardManageCars from "./DashboardManageCars";
 import DashboardManageRoles from "./DashboardManageRoles";
 import Api from '@/utils/Api';
+import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard = () => {    // State để quản lý menu active
     const [activeMenu, setActiveMenu] = useState("dashboard");
@@ -41,6 +42,10 @@ const AdminDashboard = () => {    // State để quản lý menu active
         monthlyRevenueData: [],
         recentOrders: []
     });
+    const [showNotifications, setShowNotifications] = useState(false);
+    const notificationRef = useRef(null);
+
+    const navigate = useNavigate();
 
     // Fetch dashboard stats từ API
     useEffect(() => {
@@ -207,6 +212,32 @@ const AdminDashboard = () => {    // State để quản lý menu active
             default:
                 return status;
         }
+    };
+
+    // Thêm useEffect để xử lý click outside cho notification dropdown
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+                setShowNotifications(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+    // Format thời gian
+    const formatTimeAgo = (dateString) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
+        
+        if (diffInSeconds < 60) return 'Vừa xong';
+        if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} phút trước`;
+        if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} giờ trước`;
+        return `${Math.floor(diffInSeconds / 86400)} ngày trước`;
     };
 
     // Hàm render nội dung chính dựa vào menu active
@@ -597,14 +628,12 @@ const AdminDashboard = () => {    // State để quản lý menu active
         );
     };
 
-    // const renderSettings = () => {
-    //     return (
-    //         <div className="space-y-6">
-    //             <h1 className="text-2xl font-bold text-gray-800">Cài đặt hệ thống</h1>
-    //             {/* Content will go here */}
-    //         </div>
-    //     );
-    // };
+    const handleLogout = () => {
+        // Xóa token khỏi localStorage
+        localStorage.removeItem('token');
+        // Chuyển hướng về trang đăng nhập
+        window.location.href = '/login';
+    };
 
     // Main render
     return (
@@ -701,7 +730,10 @@ const AdminDashboard = () => {    // State để quản lý menu active
                     </div>
 
                     <div className="p-4 border-t border-gray-200">
-                        <button className="flex items-center w-full px-3 py-3 text-left rounded-lg text-red-600 hover:bg-red-50">
+                        <button 
+                            onClick={handleLogout}
+                            className="flex items-center w-full px-3 py-3 text-left rounded-lg text-red-600 hover:bg-red-50 transition-all duration-200"
+                        >
                             <LogOut className="w-5 h-5 mr-3 text-red-500" />
                             <span className="font-medium">Đăng xuất</span>
                         </button>
@@ -739,12 +771,83 @@ const AdminDashboard = () => {    // State để quản lý menu active
                         </div>
 
                         <div className="flex items-center">
-                            <button className="relative p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-200 rounded-full">
-                                <Bell className="w-6 h-6" />
-                                {notifications > 0 && (
-                                    <span className="absolute top-1 right-1 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">{notifications}</span>
+                            <div className="relative" ref={notificationRef}>
+                                <button 
+                                    className="relative p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-200 rounded-full"
+                                    onClick={() => setShowNotifications(!showNotifications)}
+                                >
+                                    <Bell className="w-6 h-6" />
+                                    {notifications > 0 && (
+                                        <span className="absolute top-1 right-1 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">
+                                            {notifications}
+                                        </span>
+                                    )}
+                                </button>
+
+                                {/* Notification Dropdown */}
+                                {showNotifications && (
+                                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg py-2 z-50 border border-gray-100">
+                                        <div className="px-4 py-2 border-b border-gray-100">
+                                            <h3 className="text-sm font-semibold text-gray-800">Thông báo</h3>
+                                        </div>
+                                        <div className="max-h-96 overflow-y-auto">
+                                            {orders.slice(0, 10).map((order) => (
+                                                <div key={order.id} className="px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-0">
+                                                    <div className="flex items-start">
+                                                        <div className="flex-shrink-0">
+                                                            {order.status === 'pending' && (
+                                                                <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center">
+                                                                    <Clock className="w-4 h-4 text-yellow-600" />
+                                                                </div>
+                                                            )}
+                                                            {order.status === 'confirmed' && (
+                                                                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                                                    <CheckCircle className="w-4 h-4 text-blue-600" />
+                                                                </div>
+                                                            )}
+                                                            {order.status === 'completed' && (
+                                                                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                                                                    <CheckCircle className="w-4 h-4 text-green-600" />
+                                                                </div>
+                                                            )}
+                                                            {order.status === 'cancelled' && (
+                                                                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                                                                    <XCircle className="w-4 h-4 text-red-600" />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="ml-3 flex-1">
+                                                            <p className="text-sm text-gray-800">
+                                                                Đơn hàng <span className="font-medium">{order.id}</span>
+                                                            </p>
+                                                            <p className="text-xs text-gray-500 mt-1">
+                                                                {order.customerName} - {order.carName}
+                                                            </p>
+                                                            <div className="flex justify-between items-center mt-1">
+                                                                <span className="text-xs text-gray-400">
+                                                                    {formatTimeAgo(order.startDate)}
+                                                                </span>
+                                                                {renderStatus(order.status)}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="px-4 py-2 border-t border-gray-100">
+                                            <button 
+                                                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                                                onClick={() => {
+                                                    setActiveMenu('orders');
+                                                    setShowNotifications(false);
+                                                }}
+                                            >
+                                                Xem tất cả thông báo
+                                            </button>
+                                        </div>
+                                    </div>
                                 )}
-                            </button>
+                            </div>
 
                             <div className="ml-3 relative">
                                 <div className="flex items-center">

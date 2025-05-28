@@ -88,7 +88,6 @@ const Navbar = () => {
                     <div className="flex justify-between items-center">
                         <div className="flex items-center justify-start w-full md:w-auto">
                             <Link to="/" className="flex items-center">
-                                {/* Updated Car Logo with red-800 color */}
                                 <div className="mr-3">
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"

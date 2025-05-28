@@ -5,11 +5,28 @@ const PaymentPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const order = location.state?.order;
+    const appliedPromo = location.state?.appliedPromo;
     const thongTin  = {
         chuTaiKhoan : "NGUYEN VAN A",
         soTaiKhoan : "113366668888",
         nganHang : "MB Bank",
     }
+
+    // Tính toán số tiền sau khi áp dụng mã giảm giá
+    const tinhTienSauGiamGia = () => {
+        const totalAmount = order.thanhTien;
+        if (!appliedPromo) return totalAmount;
+        
+        if (appliedPromo.phanTramGiam > 0) {
+            const discountAmount = totalAmount * appliedPromo.phanTramGiam / 100;
+            return totalAmount - discountAmount;
+        } else if (appliedPromo.soTien > 0) {
+            return totalAmount - appliedPromo.soTien;
+        }
+        return totalAmount;
+    };
+
+    const soTienSauGiamGia = tinhTienSauGiamGia();
 
     if (!order) {
         return (
@@ -45,15 +62,29 @@ const PaymentPage = () => {
                         <span className="font-semibold">{order.ChiTietDonHangs?.[0]?.Xe?.tenXe || '---'}</span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-gray-600">Số tiền:</span>
-                        <span className="font-semibold text-blue-600 text-lg">{order.thanhTien?.toLocaleString('vi-VN')} đ</span>
+                        <span className="text-gray-600">Tạm tính:</span>
+                        <span className="font-semibold">{order.thanhTien?.toLocaleString('vi-VN')} đ</span>
+                    </div>
+                    {appliedPromo && (
+                        <div className="flex justify-between text-green-600">
+                            <span>Mã giảm giá <span className="font-semibold">({appliedPromo.maKhuyenMai})</span>:</span>
+                            <span className="font-semibold">
+                                -{appliedPromo.phanTramGiam > 0
+                                    ? `${appliedPromo.phanTramGiam}%`
+                                    : `${appliedPromo.soTien?.toLocaleString('vi-VN')} đ`}
+                            </span>
+                        </div>
+                    )}
+                    <div className="flex justify-between pt-2 border-t">
+                        <span className="text-gray-600 font-medium">Thành tiền:</span>
+                        <span className="font-semibold text-blue-600 text-lg">{soTienSauGiamGia?.toLocaleString('vi-VN')} đ</span>
                     </div>
                 </div>
                 {/* QR chuyển khoản MB Bank */}
                 <div className="mt-8 text-center mb-5">
                     <h3 className="text-lg font-semibold mb-2 text-gray-800">Chuyển khoản qua VietQR (MB Bank)</h3>
                     <img
-                        src={`https://img.vietqr.io/image/mb-${thongTin.soTaiKhoan}-qr_only.png?amount=${order.thanhTien || 0}&addInfo=${encodeURIComponent(order.maDonHang || order.id)}&accountName=${encodeURIComponent(thongTin.chuTaiKhoan)}`}
+                        src={`https://img.vietqr.io/image/mb-${thongTin.soTaiKhoan}-qr_only.png?amount=${soTienSauGiamGia || 0}&addInfo=${encodeURIComponent(order.maDonHang || order.id)}&accountName=${encodeURIComponent(thongTin.chuTaiKhoan)}`}
                         alt="QR chuyển khoản MB Bank"
                         className="mx-auto rounded-lg border shadow mb-2"
                         style={{ maxWidth: 220 }}

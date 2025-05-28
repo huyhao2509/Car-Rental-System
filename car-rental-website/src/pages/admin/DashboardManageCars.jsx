@@ -30,7 +30,7 @@ const DashboardManageCars = () => {
         giaTheoNgay: 1000000,
         giaTheoGio: 100000,
         trangThai: 1,
-        hinhAnh: ''
+        hinhAnh: null
     });
 
     // Lọc danh sách xe
@@ -61,7 +61,7 @@ const DashboardManageCars = () => {
             giaTheoNgay: 1000000,
             giaTheoGio: 100000,
             trangThai: 1,
-            hinhAnh: ''
+            hinhAnh: null
         });
     };
 
@@ -81,11 +81,13 @@ const DashboardManageCars = () => {
 
     // Xử lý thay đổi form
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const { name, value, type, files } = e.target;
         let processedValue = value;
 
-        // Xử lý giá trị số
-        if (name === 'giaTheoNgay' || name === 'giaTheoGio' || name === 'namSanXuat' || name === 'sucChua' || name === 'idHangXe' || name === 'idLoaiXe' || name === 'trangThai') {
+        // Xử lý giá trị số hoặc file
+        if (type === 'file' && name === 'hinhAnh') {
+            processedValue = files[0];
+        } else if (name === 'giaTheoNgay' || name === 'giaTheoGio' || name === 'namSanXuat' || name === 'sucChua' || name === 'idHangXe' || name === 'idLoaiXe' || name === 'trangThai') {
             processedValue = Number(value);
         }
 
@@ -98,10 +100,33 @@ const DashboardManageCars = () => {
     // Xử lý submit form
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         try {
+            const dataToSubmit = new FormData();
+            dataToSubmit.append('tenXe', formData.tenXe);
+            dataToSubmit.append('bienSoXe', formData.bienSoXe);
+            dataToSubmit.append('idHangXe', formData.idHangXe);
+            dataToSubmit.append('idLoaiXe', formData.idLoaiXe);
+            dataToSubmit.append('namSanXuat', formData.namSanXuat);
+            dataToSubmit.append('sucChua', formData.sucChua);
+            dataToSubmit.append('nhienlieu', formData.nhienlieu);
+            dataToSubmit.append('giaTheoNgay', formData.giaTheoNgay);
+            dataToSubmit.append('giaTheoGio', formData.giaTheoGio);
+            dataToSubmit.append('trangThai', formData.trangThai);
             if (editingCar) {
-                const res = await Api.post(`admin/xe/update`, formData);
+                dataToSubmit.append('id', editingCar.id);
+            }
+            if (formData.hinhAnh instanceof File) {
+                dataToSubmit.append('hinhAnh', formData.hinhAnh);
+            }
+
+            const config = {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            };
+
+            if (editingCar) {
+                const res = await Api.post(`admin/xe/update`, dataToSubmit, config);
                 if (res.data.status) {
                     toast.success(res.data.message);
                     getDataXe();
@@ -109,7 +134,7 @@ const DashboardManageCars = () => {
                     toast.error(res.data.message);
                 }
             } else {
-                const res = await Api.post(`admin/xe/create`, formData);
+                const res = await Api.post(`admin/xe/create`, dataToSubmit, config);
                 if (res.data.status) {
                     toast.success(res.data.message);
                     getDataXe();
@@ -120,8 +145,8 @@ const DashboardManageCars = () => {
             setShowAddModal(false);
             resetForm();
         } catch (error) {
-            console.log(error);
-            toast.error(error.data.message ?? 'Có lỗi xảy ra, vui lòng thử lại');
+            console.error('Error:', error);
+            toast.error(error.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại');
         }
     };
 
@@ -510,17 +535,28 @@ const DashboardManageCars = () => {
                                                 <option value="0">Bảo dưỡng</option>
                                             </select>
                                         </div>
-                                        <div>
+                                        <div className="md:col-span-2">
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                URL hình ảnh
+                                                Hình ảnh xe
                                             </label>
                                             <input
-                                                type="text"
+                                                type="file"
                                                 name="hinhAnh"
-                                                value={formData.hinhAnh}
+                                                id="hinhAnh"
+                                                accept="image/*"
                                                 onChange={handleChange}
                                                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                                             />
+                                            {formData.hinhAnh && formData.hinhAnh instanceof File && (
+                                                <div className="mt-2">
+                                                    <img src={URL.createObjectURL(formData.hinhAnh)} alt="Preview" className="h-32 w-auto rounded-md object-cover" />
+                                                </div>
+                                            )}
+                                            {editingCar && editingCar.hinhAnh && typeof editingCar.hinhAnh === 'string' && !(formData.hinhAnh instanceof File) && (
+                                                 <div className="mt-2">
+                                                     <img src={editingCar.hinhAnh} alt={editingCar.tenXe} className="h-32 w-auto rounded-md object-cover" />
+                                                 </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

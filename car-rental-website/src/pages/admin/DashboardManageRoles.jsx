@@ -17,13 +17,7 @@ const DashboardManageRoles = () => {
 
 
     // State cho chức năng
-    const [functions, setFunctions] = useState([
-        { id: 1, tenChucNang: 'Quản lý người dùng', maChucNang: 'USER_MANAGE', moTa: 'Quản lý tài khoản người dùng trong hệ thống', trangThai: 'active' },
-        { id: 2, tenChucNang: 'Quản lý xe', maChucNang: 'CAR_MANAGE', moTa: 'Quản lý danh sách xe trong hệ thống', trangThai: 'active' },
-        { id: 3, tenChucNang: 'Đặt xe', maChucNang: 'BOOKING', moTa: 'Đặt và quản lý đơn đặt xe', trangThai: 'active' },
-        { id: 4, tenChucNang: 'Phân quyền', maChucNang: 'ROLE_MANAGE', moTa: 'Phân quyền người dùng', trangThai: 'active' },
-        { id: 5, tenChucNang: 'Báo cáo thống kê', maChucNang: 'REPORT', moTa: 'Xem báo cáo và thống kê', trangThai: 'inactive' }
-    ]);    // State cho phân quyền
+    const [functions, setFunctions] = useState([]);    // State cho phân quyền
     const [rolePermissions, setRolePermissions] = useState({});
     const [selectedRoleId, setSelectedRoleId] = useState(null);
     const [isLoadingPermissions, setIsLoadingPermissions] = useState(false);

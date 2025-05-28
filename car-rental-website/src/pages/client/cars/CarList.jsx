@@ -584,7 +584,7 @@ const CarList = () => {
                                                         >
                                                             Xem chi tiết
                                                         </Link>
-                                                        {car.trangThai === 1 && (
+                                                        {/* {car.trangThai === 1 && (
                                                             <>
                                                                 <button
                                                                     onClick={() => addToCart(car)}
@@ -600,7 +600,7 @@ const CarList = () => {
                                                                     Đặt ngay
                                                                 </button>
                                                             </>
-                                                        )}
+                                                        )} */}
                                                     </div>
                                                 </div>
                                             </div>

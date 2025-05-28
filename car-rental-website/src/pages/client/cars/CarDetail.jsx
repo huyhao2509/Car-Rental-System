@@ -16,7 +16,7 @@ function CarDetail() {
     const getDataDetail = async () => {
         try {
             setLoading(true);
-            const res = await Api.get(`/client/xe/detail/${id}`);
+            const res = await Api.get(`/client/xe/get-detail/${id}`);
             setCar(res.data.data);
             console.log(res.data.data);
         } catch (error) {
