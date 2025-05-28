@@ -10,12 +10,12 @@ const { verifyToken, checkPermission } = require('../middlewares/auth');
 
 // // Route yêu cầu đăng nhập và phân quyền
 router.use(verifyToken);
-router.get('/get-all', LoaiXeController.getAll.bind(LoaiXeController));
-router.post('/update', LoaiXeController.update.bind(LoaiXeController));
-router.post('/create', LoaiXeController.create.bind(LoaiXeController));
-// router.post('/', checkPermission('THEM_L_O_A_I_X_E'), LoaiXeController.create);
-// router.put('/:id', checkPermission('SUA_L_O_A_I_X_E'), LoaiXeController.update);
-router.delete('/delete/:id', LoaiXeController.delete.bind(LoaiXeController));
-router.get('/change-status/:id', LoaiXeController.changeStatus.bind(LoaiXeController));
+
+// Route quản lý loại xe
+router.get('/get-all', checkPermission(1), LoaiXeController.getAll.bind(LoaiXeController));
+router.post('/create', checkPermission(2), LoaiXeController.create.bind(LoaiXeController));
+router.post('/update', checkPermission(3), LoaiXeController.update.bind(LoaiXeController));
+router.delete('/delete/:id', checkPermission(4), LoaiXeController.delete.bind(LoaiXeController));
+router.get('/change-status/:id', checkPermission(5), LoaiXeController.changeStatus.bind(LoaiXeController));
 
 module.exports = router;

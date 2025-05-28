@@ -10,10 +10,12 @@ const { verifyToken, checkPermission } = require('../middlewares/auth');
 
 // Route yêu cầu đăng nhập và phân quyền
 router.use(verifyToken);
-router.get('/data', HangXeController.getData.bind(HangXeController));
-router.post('/update', HangXeController.update.bind(HangXeController));
-router.post('/create', HangXeController.create.bind(HangXeController));
-router.delete('/delete/:id', HangXeController.delete.bind(HangXeController));
-router.get('/change-status/:id', HangXeController.changeStatus.bind(HangXeController));
+
+// Route quản lý hãng xe
+router.get('/data', checkPermission(6), HangXeController.getData.bind(HangXeController));
+router.post('/create', checkPermission(7), HangXeController.create.bind(HangXeController));
+router.post('/update', checkPermission(8), HangXeController.update.bind(HangXeController));
+router.delete('/delete/:id', checkPermission(9), HangXeController.delete.bind(HangXeController));
+router.get('/change-status/:id', checkPermission(10), HangXeController.changeStatus.bind(HangXeController));
 
 module.exports = router;

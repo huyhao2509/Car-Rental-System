@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const { generateOTP, storeOTP, verifyOTP } = require('../utils/otpService');
 const { sendOTPEmail, sendPasswordResetEmail } = require('../utils/emailService');
+const PinataService = require('../services/PinataService');
 
 class NguoiDungController extends Controller {
     constructor() {
@@ -301,6 +302,7 @@ class NguoiDungController extends Controller {
     async updateProfile(req, res) {
         try {
             const idNguoiDung = req.user.id;
+            const fs = require('fs').promises;
 
             const nguoiDung = await this.model.findOne({ where: { id: idNguoiDung } });
             if (!nguoiDung) {
@@ -316,17 +318,46 @@ class NguoiDungController extends Controller {
             if (hoTen !== undefined) updateData.hoTen = hoTen;
             if (soDienThoai !== undefined) updateData.soDienThoai = soDienThoai;
             if (canCuocCongDan !== undefined) updateData.canCuocCongDan = canCuocCongDan;
-
             if (req.files) {
-                console.log("Files được upload:", req.files);
-                const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
-                if (req.files.anhCanCuoc && req.files.anhCanCuoc[0]) {
-                    updateData.anhCanCuoc = `/uploads/documents/${req.files.anhCanCuoc[0].filename}`;
-                    console.log("anhCanCuoc path:", updateData.anhCanCuoc);
-                }
-                if (req.files.anhBangLaiXe && req.files.anhBangLaiXe[0]) {
-                    updateData.anhBangLaiXe = `/uploads/documents/${req.files.anhBangLaiXe[0].filename}`;
-                    console.log("anhBangLaiXe path:", updateData.anhBangLaiXe);
+                try {
+                    if (req.files.anhCanCuoc && req.files.anhCanCuoc[0]) {
+                        const file = req.files.anhCanCuoc[0];
+                        const fileBuffer = await fs.readFile(file.path);
+                        
+                        const cccdResult = await PinataService.uploadImage(
+                            fileBuffer,
+                            `cccd_${idNguoiDung}_${Date.now()}`,
+                            idNguoiDung,
+                            'cccd'
+                        );
+                        updateData.anhCanCuoc = cccdResult.gatewayUrl;
+                        
+                        // Xóa file tạm sau khi upload
+                        await fs.unlink(file.path);
+                    }
+                    
+                    if (req.files.anhBangLaiXe && req.files.anhBangLaiXe[0]) {
+                        const file = req.files.anhBangLaiXe[0];
+                        const fileBuffer = await fs.readFile(file.path);
+                        
+                        const blxResult = await PinataService.uploadImage(
+                            fileBuffer,
+                            `banglai_${idNguoiDung}_${Date.now()}`,
+                            idNguoiDung,
+                            'banglai'
+                        );
+                        updateData.anhBangLaiXe = blxResult.gatewayUrl;
+                        
+                        // Xóa file tạm sau khi upload
+                        await fs.unlink(file.path);
+                    }
+                } catch (uploadError) {
+                    console.error('Lỗi upload file:', uploadError);
+                    return res.status(500).json({
+                        status: false,
+                        message: 'Lỗi khi upload ảnh',
+                        error: uploadError.message
+                    });
                 }
             }
             
@@ -340,6 +371,7 @@ class NguoiDungController extends Controller {
                 data: updatedUser
             });
         } catch (error) {
+            console.error('Lỗi cập nhật profile:', error);
             return res.status(500).json({
                 status: false,
                 message: 'Lỗi server',
@@ -389,21 +421,43 @@ class NguoiDungController extends Controller {
             }
 
             if (req.file) {
-                console.log("Avatar file được upload:", req.file);
-                const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
-                const avatarPath = `/uploads/avatars/${req.file.filename}`;
-                
-                nguoiDung.anhDaiDien = avatarPath;
-                console.log("Avatar path:", avatarPath);
-                await nguoiDung.save();
+                try {
+                    // Tạo buffer từ file
+                    const fileBuffer = req.file.buffer;
+                    if (!fileBuffer) {
+                        return res.status(400).json({
+                            status: false,
+                            message: 'Không thể đọc dữ liệu file'
+                        });
+                    }
 
-                const { password: _, ...updatedUser } = nguoiDung.toJSON();
+                    // Upload ảnh lên Pinata
+                    const result = await PinataService.uploadImage(
+                        fileBuffer,
+                        `avatar_${idNguoiDung}_${Date.now()}`,
+                        idNguoiDung,
+                        'avatar'
+                    );
+                    
+                    // Cập nhật URL ảnh vào database
+                    nguoiDung.anhDaiDien = result.gatewayUrl;
+                    await nguoiDung.save();
 
-                return res.status(200).json({
-                    status: true,
-                    message: 'Cập nhật ảnh đại diện thành công',
-                    data: updatedUser
-                });
+                    const { password: _, ...updatedUser } = nguoiDung.toJSON();
+
+                    return res.status(200).json({
+                        status: true,
+                        message: 'Cập nhật ảnh đại diện thành công',
+                        data: updatedUser
+                    });
+                } catch (uploadError) {
+                    console.error('Lỗi upload avatar:', uploadError);
+                    return res.status(500).json({
+                        status: false,
+                        message: 'Lỗi khi upload ảnh',
+                        error: uploadError.message
+                    });
+                }
             } else {
                 return res.status(400).json({
                     status: false,
@@ -438,14 +492,11 @@ class NguoiDungController extends Controller {
                 });
             }
 
-            const filePath = path.join(__dirname, '../../public', nguoiDung.anhCanCuoc);
+            // Lấy IPFS hash từ URL
+            const ipfsHash = nguoiDung.anhCanCuoc.split('/').pop();
             
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-                console.log('Đã xóa file:', filePath);
-            } else {
-                console.log('File không tồn tại:', filePath);
-            }
+            // Xóa file từ Pinata
+            await PinataService.deleteFile(ipfsHash);
 
             nguoiDung.anhCanCuoc = null;
             await nguoiDung.save();
@@ -485,14 +536,11 @@ class NguoiDungController extends Controller {
                 });
             }
 
-            const filePath = path.join(__dirname, '../../public', nguoiDung.anhBangLaiXe);
+            // Lấy IPFS hash từ URL
+            const ipfsHash = nguoiDung.anhBangLaiXe.split('/').pop();
             
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-                console.log('Đã xóa file bằng lái:', filePath);
-            } else {
-                console.log('File bằng lái không tồn tại:', filePath);
-            }
+            // Xóa file từ Pinata
+            await PinataService.deleteFile(ipfsHash);
 
             nguoiDung.anhBangLaiXe = null;
             await nguoiDung.save();

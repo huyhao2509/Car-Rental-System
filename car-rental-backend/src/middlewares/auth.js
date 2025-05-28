@@ -1,35 +1,47 @@
 const jwt = require('jsonwebtoken');
-const { ChucVu, ChucNang, ChiTietPhanQuyen } = require('../models');
+const { NguoiDung, ChucVu, ChucNang, ChiTietPhanQuyen } = require('../models');
 
 /**
  * Middleware xác thực token JWT
  */
-const verifyToken = (req, res, next) => {
+const verifyToken = async (req, res, next) => {
     try {
-        const authHeader = req.header('Authorization');
-        const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-        if (!token) {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return res.status(401).json({
                 status: false,
                 message: 'Không tìm thấy token xác thực'
             });
         }
 
-        // Xác thực token
-        jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-            if (err) {
-                return res.status(401).json({
-                    status: false,
-                    message: 'Token không hợp lệ hoặc đã hết hạn'
-                });
-            }
-            req.user = decoded;
-            next();
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        const nguoiDung = await NguoiDung.findOne({ 
+            where: { id: decoded.id },
+            include: ['ChucVu']
         });
+
+        if (!nguoiDung) {
+            return res.status(401).json({
+                status: false,
+                message: 'Người dùng không tồn tại'
+            });
+        }
+
+        if (nguoiDung.trangThai !== 1) {
+            return res.status(401).json({
+                status: false,
+                message: 'Tài khoản đã bị khóa'
+            });
+        }
+
+        req.user = nguoiDung;
+        next();
     } catch (error) {
-        return res.status(500).json({
+        return res.status(401).json({
             status: false,
-            message: 'Lỗi server',
+            message: 'Token không hợp lệ hoặc đã hết hạn',
             error: error.message
         });
     }
@@ -37,27 +49,22 @@ const verifyToken = (req, res, next) => {
 
 /**
  * Middleware kiểm tra quyền hạn
- * @param {string} permissionCode - Mã quyền cần kiểm tra (vd: THEM_LOAI_XE)
+ * @param {string} idChucNang - ID chức năng cần kiểm tra
  */
-const checkPermission = (permissionCode) => {
+const checkPermission = (idChucNang) => {
     return async (req, res, next) => {
         try {
-            if (!req.user) {
-                return res.status(401).json({
-                    status: false,
-                    message: 'Vui lòng đăng nhập để thực hiện chức năng này'
-                });
-            }
-
-            const chucVuId = req.user.idChucVu;
+            const nguoiDung = req.user;
             
-            if (chucVuId === 1) {
+            // Kiểm tra xem người dùng có phải là admin không (idChucVu = 1)
+            if (nguoiDung.idChucVu === 1) {
                 return next();
             }
 
+            // Kiểm tra chức năng có tồn tại và đang hoạt động
             const chucNang = await ChucNang.findOne({
                 where: {
-                    tenChucNang: permissionCode,
+                    id: idChucNang,
                     trangThai: 1
                 }
             });
@@ -69,10 +76,11 @@ const checkPermission = (permissionCode) => {
                 });
             }
 
+            // Kiểm tra quyền trong bảng chi tiết phân quyền
             const hasPermission = await ChiTietPhanQuyen.findOne({
                 where: {
-                    idChucVu: chucVuId,
-                    idChucNang: chucNang.id
+                    idChucVu: nguoiDung.idChucVu,
+                    idChucNang: idChucNang
                 }
             });
 
@@ -87,7 +95,7 @@ const checkPermission = (permissionCode) => {
         } catch (error) {
             return res.status(500).json({
                 status: false,
-                message: 'Lỗi server',
+                message: 'Lỗi khi kiểm tra quyền',
                 error: error.message
             });
         }
