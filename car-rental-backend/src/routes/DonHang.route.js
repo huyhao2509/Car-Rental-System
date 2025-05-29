@@ -26,6 +26,7 @@ router.get('/huy-don-hang/:id', DonHangController.huyDonHang.bind(DonHangControl
 router.get('/lay-don-hang-all', DonHangController.layDonHangAll.bind(DonHangController));
 router.post('/get-ma-khuyen-mai', DonHangController.getMaKhuyenMai.bind(DonHangController));
 router.get('/history', DonHangController.getHistoryByUser.bind(DonHangController));
+router.post('/danh-gia', DonHangController.danhGiaDonHang);
 
 // Khai báo đường dẫn API
 router.get('/', DonHangController.getAll.bind(DonHangController));

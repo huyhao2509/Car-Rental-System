@@ -302,7 +302,8 @@ class NguoiDungController extends Controller {
     async updateProfile(req, res) {
         try {
             const idNguoiDung = req.user.id;
-            const fs = require('fs').promises;
+            console.log('Request body:', req.body);
+            console.log('Request files:', req.files);
 
             const nguoiDung = await this.model.findOne({ where: { id: idNguoiDung } });
             if (!nguoiDung) {
@@ -319,45 +320,26 @@ class NguoiDungController extends Controller {
             if (soDienThoai !== undefined) updateData.soDienThoai = soDienThoai;
             if (canCuocCongDan !== undefined) updateData.canCuocCongDan = canCuocCongDan;
             if (req.files) {
-                try {
-                    if (req.files.anhCanCuoc && req.files.anhCanCuoc[0]) {
-                        const file = req.files.anhCanCuoc[0];
-                        const fileBuffer = await fs.readFile(file.path);
-                        
-                        const cccdResult = await PinataService.uploadImage(
-                            fileBuffer,
-                            `cccd_${idNguoiDung}_${Date.now()}`,
-                            idNguoiDung,
-                            'cccd'
-                        );
-                        updateData.anhCanCuoc = cccdResult.gatewayUrl;
-                        
-                        // Xóa file tạm sau khi upload
-                        await fs.unlink(file.path);
-                    }
-                    
-                    if (req.files.anhBangLaiXe && req.files.anhBangLaiXe[0]) {
-                        const file = req.files.anhBangLaiXe[0];
-                        const fileBuffer = await fs.readFile(file.path);
-                        
-                        const blxResult = await PinataService.uploadImage(
-                            fileBuffer,
-                            `banglai_${idNguoiDung}_${Date.now()}`,
-                            idNguoiDung,
-                            'banglai'
-                        );
-                        updateData.anhBangLaiXe = blxResult.gatewayUrl;
-                        
-                        // Xóa file tạm sau khi upload
-                        await fs.unlink(file.path);
-                    }
-                } catch (uploadError) {
-                    console.error('Lỗi upload file:', uploadError);
-                    return res.status(500).json({
-                        status: false,
-                        message: 'Lỗi khi upload ảnh',
-                        error: uploadError.message
-                    });
+                if (req.files.anhCanCuoc && req.files.anhCanCuoc[0]) {
+                    const fileBuffer = req.files.anhCanCuoc[0].buffer;
+                    const cccdResult = await PinataService.uploadImage(
+                        fileBuffer,
+                        `cccd_${idNguoiDung}_${Date.now()}`,
+                        idNguoiDung,
+                        'cccd'
+                    );
+                    updateData.anhCanCuoc = cccdResult.gatewayUrl;
+                }
+                
+                if (req.files.anhBangLaiXe && req.files.anhBangLaiXe[0]) {
+                    const fileBuffer = req.files.anhBangLaiXe[0].buffer;
+                    const blxResult = await PinataService.uploadImage(
+                        fileBuffer,
+                        `banglai_${idNguoiDung}_${Date.now()}`,
+                        idNguoiDung,
+                        'banglai'
+                    );
+                    updateData.anhBangLaiXe = blxResult.gatewayUrl;
                 }
             }
             

@@ -3,6 +3,15 @@ const router = express.Router();
 const NguoiDungController = require('../controllers/NguoiDungController');
 const { uploadAvatar, uploadDocuments } = require('../middlewares/upload');
 const { verifyToken } = require('../middlewares/auth');
+const multer = require('multer');
+
+// Cấu hình multer để xử lý form-data
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 5 * 1024 * 1024 // Giới hạn 5MB
+    }
+});
 
 // Route công khai - không cần đăng nhập
 router.post('/register', NguoiDungController.register.bind(NguoiDungController));
@@ -19,7 +28,10 @@ router.post('/reset-password', NguoiDungController.resetPassword.bind(NguoiDungC
 router.post(
     '/profile/update',
     verifyToken,
-    uploadDocuments,
+    upload.fields([
+        { name: 'anhCanCuoc', maxCount: 1 },
+        { name: 'anhBangLaiXe', maxCount: 1 }
+    ]),
     NguoiDungController.updateProfile.bind(NguoiDungController)
 );
 router.get(
@@ -31,7 +43,6 @@ router.get(
 router.post(
     '/profile/upload-avatar',
     verifyToken,
-    uploadAvatar,
     NguoiDungController.uploadAvatar.bind(NguoiDungController)
 );
 

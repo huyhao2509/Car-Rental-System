@@ -65,7 +65,6 @@ const verifyOTP = (email, otp) => {
     return isValid;
 };
 
-// Lưu OTP vào redis với thời gian hết hạn (5 phút)
 export const saveOTP = async (email, otp) => {
     try {
         await redisClient.setExAsync(`${email}_otp`, otp, 300);
@@ -76,10 +75,8 @@ export const saveOTP = async (email, otp) => {
     }
 };
 
-// Gửi OTP qua email
 export const sendOTPEmail = async (email, otp) => {
     try {
-        // Cấu hình nodemailer
         const transporter = nodemailer.createTransport({
             service: "gmail",
             auth: {

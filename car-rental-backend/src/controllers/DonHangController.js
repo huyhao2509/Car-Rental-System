@@ -1,5 +1,5 @@
 const Controller = require('./Controller');
-const { DonHang, ChiTietDonHang, Xe, HangXe, LoaiXe, NguoiDung, KhuyenMai } = require('../models');
+const { DonHang, ChiTietDonHang, Xe, HangXe, LoaiXe, NguoiDung, KhuyenMai, DanhGia } = require('../models');
 const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
 const crypto = require('crypto');
@@ -22,7 +22,7 @@ class DonHangController extends Controller {
                     model: DonHang,
                     where: {
                         trangThai: {
-                            [Op.notIn]: [0]
+                            [Op.notIn]: [0, 3]
                         },
                         [Op.or]: [
                             {
@@ -972,14 +972,16 @@ class DonHangController extends Controller {
             // Lấy phân bố loại xe được thuê
             const carTypeData = await ChiTietDonHang.findAll({
                 attributes: [
-                    [Sequelize.literal('Xe.LoaiXe.tenLoaiXe'), 'name'],
+                    [Sequelize.col('Xe.LoaiXe.tenLoaiXe'), 'name'],
                     [Sequelize.fn('COUNT', Sequelize.col('ChiTietDonHang.id')), 'count']
                 ],
                 include: [{
                     model: Xe,
+                    required: true,
                     attributes: [],
                     include: [{
                         model: LoaiXe,
+                        required: true,
                         attributes: []
                     }]
                 }],
@@ -1129,18 +1131,16 @@ class DonHangController extends Controller {
             // Chuyển đổi dữ liệu top xe
             const topCarsData = await Promise.all(topCarsDataResult.map(async (car) => {
                 // Lấy đánh giá trung bình cho xe này
-                const avgRatingResult = await DonHang.findOne({
+                const avgRatingResult = await ChiTietDonHang.findOne({
                     attributes: [
-                        [Sequelize.fn('AVG', Sequelize.col('DanhGia.diem')), 'avgRating']
+                        [Sequelize.fn('AVG', Sequelize.col('DanhGium.soSao')), 'avgRating']
                     ],
+                    where: {
+                        idXe: car.idXe
+                    },
                     include: [{
-                        model: ChiTietDonHang,
-                        attributes: [],
-                        where: {
-                            idXe: car.idXe
-                        }
-                    }, {
                         model: DanhGia,
+                        required: false,
                         attributes: []
                     }],
                     raw: true
@@ -1201,6 +1201,75 @@ class DonHangController extends Controller {
         } catch (err) {
             console.error('Lỗi lấy số liệu báo cáo:', err);
             res.status(500).json({ status: false, message: 'Lỗi lấy số liệu báo cáo', error: err.message });
+        }
+    }
+
+    async danhGiaDonHang(req, res) {
+        try {
+            const authHeader = req.headers.authorization;
+            if (!authHeader || !authHeader.startsWith('Bearer ')) {
+                return res.status(401).json({
+                    status: false,
+                    message: 'Không tìm thấy token xác thực'
+                });
+            }
+            const token = authHeader.split(' ')[1];
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const idNguoiDung = decoded.id;
+
+            const { idDonHang, soSao, noiDung } = req.body;
+
+            // Kiểm tra đơn hàng tồn tại và thuộc về người dùng
+            const donHang = await DonHang.findOne({
+                where: { 
+                    id: idDonHang,
+                    idNguoiDung,
+                    trangThai: DonHang.DA_HOAN_THANH
+                }
+            });
+
+            if (!donHang) {
+                return res.status(404).json({
+                    status: false,
+                    message: 'Không tìm thấy đơn hàng hoặc đơn hàng chưa hoàn thành'
+                });
+            }
+
+            // Lấy chi tiết đơn hàng
+            const chiTietDonHang = await ChiTietDonHang.findOne({
+                where: { idDonHang }
+            });
+
+            if (!chiTietDonHang) {
+                return res.status(404).json({
+                    status: false,
+                    message: 'Không tìm thấy chi tiết đơn hàng'
+                });
+            }
+
+            // Tạo đánh giá mới
+            const danhGia = await DanhGia.create({
+                idChiTiet: chiTietDonHang.id,
+                idNguoiDung,
+                soSao,
+                noiDung,
+                trangThai: 1,
+                thoiGianTao: new Date(),
+                thoiGianSua: new Date()
+            });
+
+            res.status(200).json({
+                status: true,
+                message: 'Đánh giá thành công',
+                data: danhGia
+            });
+        } catch (error) {
+            console.error('Lỗi khi đánh giá đơn hàng:', error);
+            res.status(500).json({
+                status: false,
+                message: 'Đã xảy ra lỗi khi đánh giá đơn hàng',
+                error: error.message
+            });
         }
     }
 }

@@ -5,8 +5,8 @@ import { connectDB } from "./src/config/connectDB.js";
 import { connectRedis } from "./src/config/connectRedis.js";
 import initRoutes from "./src/routes/index.js";
 const path = require('path');
-// Import schedule fetch MB transactions
-// import './src/services/mbTransactionScheduler.js';
+
+import './src/services/mbTransactionScheduler.js';
 
 
 dotenv.config();

@@ -54,9 +54,17 @@ const verifyToken = async (req, res, next) => {
 const checkPermission = (idChucNang) => {
     return async (req, res, next) => {
         try {
-            const nguoiDung = req.user;
-            
-            // Kiểm tra xem người dùng có phải là admin không (idChucVu = 1)
+            const authHeader = req.headers.authorization;
+            if (!authHeader || !authHeader.startsWith('Bearer ')) {
+                return res.status(401).json({
+                    status: false,
+                    message: 'Không tìm thấy token xác thực'
+                });
+            }
+            const token = authHeader.split(' ')[1];
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const idNguoiDung = decoded.id;
+            const nguoiDung = await NguoiDung.findOne({ where: { id: idNguoiDung } });
             if (nguoiDung.idChucVu === 1) {
                 return next();
             }
