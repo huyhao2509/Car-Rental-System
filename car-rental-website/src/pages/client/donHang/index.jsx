@@ -30,6 +30,11 @@ const DonHang = () => {
     const [promoError, setPromoError] = useState('');
     const [isCheckingPromo, setIsCheckingPromo] = useState(false);
     const [paymentWarning, setPaymentWarning] = useState('');
+    const [showRatingModal, setShowRatingModal] = useState(false);
+    const [currentRatingOrder, setCurrentRatingOrder] = useState(null);
+    const [rating, setRating] = useState(5);
+    const [ratingContent, setRatingContent] = useState('');
+    const [isSubmittingRating, setIsSubmittingRating] = useState(false);
 
     const fetchOrders = async () => {
         try {
@@ -281,6 +286,63 @@ const DonHang = () => {
         }
     };
 
+    // Thêm hàm xử lý đánh giá
+    const handleShowRating = (order) => {
+        setCurrentRatingOrder(order);
+        setShowRatingModal(true);
+        setRating(5);
+        setRatingContent('');
+    };
+
+    const handleCloseRating = () => {
+        setShowRatingModal(false);
+        setCurrentRatingOrder(null);
+        setRating(5);
+        setRatingContent('');
+    };
+
+    const handleSubmitRating = async () => {
+        try {
+            setIsSubmittingRating(true);
+            const response = await Api.post('client/don-hang/danh-gia', {
+                idDonHang: currentRatingOrder.id,
+                soSao: rating,
+                noiDung: ratingContent
+            });
+
+            if (response.data.status) {
+                toast.success('Đánh giá thành công');
+                handleCloseRating();
+                fetchOrders(); // Refresh danh sách đơn hàng
+            } else {
+                toast.error(response.data.message);
+            }
+        } catch (error) {
+            console.error('Lỗi khi gửi đánh giá:', error);
+            toast.error('Có lỗi xảy ra khi gửi đánh giá');
+        } finally {
+            setIsSubmittingRating(false);
+        }
+    };
+
+    // Thêm component hiển thị sao
+    const StarRating = ({ rating, onRatingChange }) => {
+        return (
+            <div className="flex items-center space-x-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                        key={star}
+                        type="button"
+                        className={`text-2xl ${star <= rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                        onClick={() => onRatingChange(star)}
+                    >
+                        ★
+                    </button>
+                ))}
+            </div>
+        );
+    };
+
     // Hiển thị trạng thái loading
     if (isLoading) {
         return (
@@ -440,6 +502,7 @@ const DonHang = () => {
                                                 {order.trangThai === ORDER_STATUS.DA_HOAN_THANH && (
                                                     <button
                                                         className="px-4 py-2 bg-green-100 text-green-700 rounded-md hover:bg-green-200"
+                                                        onClick={() => handleShowRating(order)}
                                                     >
                                                         Đánh giá
                                                     </button>
@@ -697,6 +760,67 @@ const DonHang = () => {
                                 disabled={paymentMethod === 'vnpay' || paymentMethod === 'momo' || isLoading}
                             >
                                 {isLoading ? 'Đang xử lý...' : 'Xác nhận thanh toán'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Đánh giá */}
+            {showRatingModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-xl font-bold text-gray-800">
+                                Đánh giá đơn hàng
+                            </h2>
+                            <button
+                                onClick={handleCloseRating}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div className="mb-4">
+                            <div className="mb-4">
+                                <p className="text-gray-600 mb-2">Mã đơn hàng: {currentRatingOrder.maDonHang}</p>
+                                <p className="text-gray-600 mb-2">Xe: {currentRatingOrder?.ChiTietDonHangs[0]?.Xe?.tenXe}</p>
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-gray-700 font-medium mb-2">Đánh giá của bạn</label>
+                                <StarRating rating={rating} onRatingChange={setRating} />
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-gray-700 font-medium mb-2">Nội dung đánh giá</label>
+                                <textarea
+                                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    rows="4"
+                                    placeholder="Nhập nội dung đánh giá của bạn"
+                                    value={ratingContent}
+                                    onChange={(e) => setRatingContent(e.target.value)}
+                                ></textarea>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={handleCloseRating}
+                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                                disabled={isSubmittingRating}
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                onClick={handleSubmitRating}
+                                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300"
+                                disabled={isSubmittingRating}
+                            >
+                                {isSubmittingRating ? 'Đang gửi...' : 'Gửi đánh giá'}
                             </button>
                         </div>
                     </div>

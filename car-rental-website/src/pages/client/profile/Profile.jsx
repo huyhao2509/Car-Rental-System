@@ -226,7 +226,7 @@ const DocumentUpload = ({ user, onProfileDataChange }) => {
         const formDataToSend = new FormData();
         if (canCuocFile) formDataToSend.append('anhCanCuoc', canCuocFile);
         if (bangLaiFile) formDataToSend.append('anhBangLaiXe', bangLaiFile);
-        formDataToSend.append('canCuocCongDan', canCuocNumber);
+        if (canCuocNumber) formDataToSend.append('canCuocCongDan', canCuocNumber);
         
         if (!canCuocFile && !bangLaiFile && canCuocNumber === (user?.canCuocCongDan || '')) {
             toast.info("Không có thay đổi nào để cập nhật.");
@@ -244,14 +244,6 @@ const DocumentUpload = ({ user, onProfileDataChange }) => {
             if (response.data.status) {
                 toast.success("Cập nhật giấy tờ thành công");
                 onProfileDataChange(response.data.data);
-                
-                // Nếu có ảnh mới từ response, cập nhật preview
-                if (response.data.data.anhCanCuoc) {
-                    setCanCuocPreview(getImageUrl(response.data.data.anhCanCuoc));
-                }
-                if (response.data.data.anhBangLaiXe) {
-                    setBangLaiPreview(getImageUrl(response.data.data.anhBangLaiXe));
-                }
                 
                 // Reset file đã chọn sau khi upload thành công
                 setCanCuocFile(null);
