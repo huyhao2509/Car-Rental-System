@@ -20,7 +20,6 @@ import Services from '@/pages/client/services/Services';
 // Client Account Pages
 import ProfilePage from '@/pages/client/profile/Profile';
 import BookingPage from '@/pages/client/reservations/Booking';
-import MomoPayment from '@/pages/client/payment/MomoPayment';
 import DonHang from '@/pages/client/donHang';
 import Cart from '@/pages/client/cars/Cart';
 import PaymentPage from '@/pages/client/donHang/PaymentPage';
@@ -54,7 +53,6 @@ const AppRoutes = () => {
                 <Route element={<ProtectedRoute />}>
                     <Route path="profile" element={<ProfilePage />} />
                     <Route path="bookings" element={<BookingPage />} />
-                    <Route path="payment" element={<MomoPayment />} />
                     <Route path="cart" element={<Cart />} />
                     <Route path="donhang" element={<DonHang />} />
                     <Route path="don-hang/thanh-toan" element={<PaymentPage />} />

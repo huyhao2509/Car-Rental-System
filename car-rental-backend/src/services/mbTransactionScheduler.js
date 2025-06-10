@@ -4,11 +4,11 @@ const { LichSuGiaoDich, DonHang } = require('../models');
 const API_URL = 'https://api-mb.dzmid.io.vn/api/transactions';
 
 const payload = {
-    "USERNAME": "THANHTRUONG2311",
-    "PASSWORD": "TruongCuaMaiLinh2809",
+    "USERNAME": "0935815924",
+    "PASSWORD": "Huyhaonguyen258@@",
     "DAY_BEGIN": getCurrentDate(),
     "DAY_END": getCurrentDate(),
-    "NUMBER_MB": "1910061030119"
+    "NUMBER_MB": "98998998899999"
 };
 
 function getCurrentDate() {
@@ -25,6 +25,7 @@ async function fetchTransactions() {
             headers: { 'Content-Type': 'application/json' }
         });
         const data = res.data.data.transactionHistoryList;
+        
         data.forEach(async (item) => {
             const transaction = await LichSuGiaoDich.findOne({ where: { soTaiKhoanChuyen: item.refNo } });
             if (!transaction) {
