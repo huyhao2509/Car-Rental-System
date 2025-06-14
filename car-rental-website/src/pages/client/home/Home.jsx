@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
 
@@ -10,6 +10,7 @@ import CarList from "../../../features/cars/CarList/CarList";
 import Testimonial from "../../../components/sections/Testimonial/Testimonial";
 import PromotionSection from "../../../components/sections/PromotionSection/PromotionSection";
 import PopularLocations from "../../../components/sections/PopularLocations/PopularLocations";
+import AppStoreBanner from "../../../components/sections/AppStoreBanner/AppStoreBanner";
 
 const Home = () => {
   useEffect(() => {
@@ -31,7 +32,7 @@ const Home = () => {
       <Testimonial />
       <PromotionSection />
       <PopularLocations />
-      {/* <AppStoreBanner /> */}
+      <AppStoreBanner />
     </div>
   );
 };

@@ -7,8 +7,8 @@ const PaymentPage = () => {
     const order = location.state?.order;
     const appliedPromo = location.state?.appliedPromo;
     const thongTin  = {
-        chuTaiKhoan : "NGUYEN VAN A",
-        soTaiKhoan : "113366668888",
+        chuTaiKhoan : "NGUYEN HUY HAO",
+        soTaiKhoan : "98998998899999",
         nganHang : "MB Bank",
     }
 
