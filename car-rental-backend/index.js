@@ -8,7 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 // Khởi tạo chatbot service để chạy nền
-// import './src/services/chatbotService.js';
+import './src/services/chatbotService.js';
 
 // Import schedule fetch MB transactions
 // import './src/services/mbTransactionScheduler.js';

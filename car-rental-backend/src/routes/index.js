@@ -7,6 +7,7 @@ const AdminNguoiDungRouter = require('./AdminNguoiDung.route');
 const XeRouter = require('./XeRouter.route');
 const DonHangRouter = require('./DonHang.route');
 const KhuyenMaiRouter = require('./KhuyenMai.route');
+const ChatbotRouter = require('./Chatbot.route.js');
 // const ChatbotRouter = require('./Chatbot.route');
 
 const initRoutes = (app) => {
@@ -22,6 +23,8 @@ const initRoutes = (app) => {
     app.use('/api/nguoi-dung', nguoiDungRouter);
     app.use('/api/client/xe', XeRouter);
     app.use('/api/client/don-hang', DonHangRouter);
+
+    app.use('/api/chatbot', ChatbotRouter);
 
     // app.use('/api/v1/chatbot', ChatbotRouter);
 
