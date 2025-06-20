@@ -4,14 +4,22 @@ import cors from "cors";
 import { connectDB } from "./src/config/connectDB.js";
 import { connectRedis } from "./src/config/connectRedis.js";
 import initRoutes from "./src/routes/index.js";
-const path = require('path');
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Khởi tạo chatbot service để chạy nền
+import './src/services/chatbotService.js';
+
 // Import schedule fetch MB transactions
-// import './src/services/mbTransactionScheduler.js';
+import './src/services/mbTransactionScheduler.js';
 
 
 dotenv.config();
 
 const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(
     cors({
@@ -26,7 +34,22 @@ initRoutes(app);
 connectDB();
 connectRedis();
 
-const port = process.env.PORT || 8888;
-const listener = app.listen(port, async () => {
-    console.log(`Server is running on the port ${listener.address().port}`);
-});
+const startServer = () => {
+    const port = process.env.PORT || 5000;
+    const server = app.listen(port, () => {
+        console.log(`\n>>> SERVER ĐÃ SẴN SÀNG TẠI CỔNG ${port} <<<\n`);
+    });
+
+    server.on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+            console.error(`\nLỗi: Cổng ${port} đang được sử dụng. Vui lòng đóng ứng dụng khác đang dùng cổng này và thử lại.\n`);
+            process.exit(1);
+        } else {
+            console.error('Lỗi khi khởi động server:', err);
+            process.exit(1);
+        }
+    });
+};
+
+console.log("--- KHỞI ĐỘNG SERVER ---");
+startServer();

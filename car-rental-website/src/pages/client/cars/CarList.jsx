@@ -172,7 +172,7 @@ const CarList = () => {
 
 
     const getDataXe = async () => {
-        const res = await Api.get('client/xe/get-all');
+        const res = await Api.get('client/xe/get-all-client');
         setCars(res.data.data);
     }
 

@@ -1,21 +1,48 @@
 const axios = require('axios');
+const { LichSuGiaoDich, DonHang } = require('../models');
 
 const API_URL = 'https://api-mb.dzmid.io.vn/api/transactions';
 
 const payload = {
-    "USERNAME": "THANHTRUONG2311",
-    "PASSWORD": "TruongCuaMaiLinh2809",
-    "DAY_BEGIN": "23/04/2024",
-    "DAY_END": "23/04/2024",
-    "NUMBER_MB": "1910061030119"
+    "USERNAME": "0935815924",
+    "PASSWORD": "Huyhaonguyen258@@",
+    "DAY_BEGIN": getCurrentDate(),
+    "DAY_END": getCurrentDate(),
+    "NUMBER_MB": "98998998899999"
 };
+
+function getCurrentDate() {
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0'); // Tháng bắt đầu từ 0
+    const yyyy = today.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+}
 
 async function fetchTransactions() {
     try {
         const res = await axios.post(API_URL, payload, {
             headers: { 'Content-Type': 'application/json' }
         });
-        console.log('Transaction data:', res.data);
+        const data = res.data.data.transactionHistoryList;
+        
+        data.forEach(async (item) => {
+            const transaction = await LichSuGiaoDich.findOne({ where: { soTaiKhoanChuyen: item.refNo } });
+            if (!transaction) {
+                await LichSuGiaoDich.create(item);
+            }
+            const text = item.description;
+            const match = text.match(/DH\d+/);
+            if (match) {
+                const maDonHang = match[0];
+                const donHang = await DonHang.findOne({ where: { maDonHang: maDonHang, trangThai: DonHang.DA_TAO_DON_HANG, isThanhToan: DonHang.CHUA_THANH_TOAN_IS } });
+                if (donHang) {
+                    donHang.trangThai = DonHang.DA_THANH_TOAN;
+                    donHang.isThanhToan = DonHang.DA_THANH_TOAN_IS;
+                    await donHang.save();
+                }
+            }
+        });
     } catch (err) {
         console.error('Lỗi lấy transaction:', err.message);
     }

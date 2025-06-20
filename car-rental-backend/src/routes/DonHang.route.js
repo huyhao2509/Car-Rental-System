@@ -6,11 +6,10 @@ const { verifyToken, checkPermission } = require('../middlewares/auth');
 // Dashboard stats không yêu cầu xác thực
 router.get('/admin/dashboard-stats', DonHangController.dashboardStats.bind(DonHangController));
 // Reports endpoint cho trang báo cáo
-router.get('/admin/reports', checkPermission(45), DonHangController.getReports.bind(DonHangController));
 
 // Route yêu cầu đăng nhập và phân quyền
 router.use(verifyToken);
-
+router.get('/admin/reports', checkPermission(45), DonHangController.getReports.bind(DonHangController));
 // Route quản lý đơn hàng
 router.get('/lay-don-hang-all-admin', checkPermission(42), DonHangController.layDonHangAllAdmin.bind(DonHangController));
 router.post('/xac-nhan-thanh-toan/:id', checkPermission(43), DonHangController.xacNhanThanhToan.bind(DonHangController));

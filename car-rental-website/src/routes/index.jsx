@@ -41,6 +41,9 @@ const AppRoutes = () => {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
+            {/* Test route for homepage without layout */}
+            <Route path="/home-test" element={<HomePage />} />
+
             {/* Main Layout Routes */}
             <Route path="/" element={<DefaultLayout />}>
                 <Route index element={<HomePage />} />

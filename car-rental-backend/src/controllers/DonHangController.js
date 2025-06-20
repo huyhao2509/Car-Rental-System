@@ -1,5 +1,5 @@
 const Controller = require('./Controller');
-const { DonHang, ChiTietDonHang, Xe, HangXe, LoaiXe, NguoiDung, KhuyenMai } = require('../models');
+const { DonHang, ChiTietDonHang, Xe, HangXe, LoaiXe, NguoiDung, KhuyenMai, DanhGia } = require('../models');
 const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
 const crypto = require('crypto');
@@ -972,7 +972,7 @@ class DonHangController extends Controller {
             // Lấy phân bố loại xe được thuê
             const carTypeData = await ChiTietDonHang.findAll({
                 attributes: [
-                    [Sequelize.literal('Xe.LoaiXe.tenLoaiXe'), 'name'],
+                    [Sequelize.col('Xe.LoaiXe.tenLoaiXe'), 'name'],
                     [Sequelize.fn('COUNT', Sequelize.col('ChiTietDonHang.id')), 'count']
                 ],
                 include: [{
@@ -1129,23 +1129,21 @@ class DonHangController extends Controller {
             // Chuyển đổi dữ liệu top xe
             const topCarsData = await Promise.all(topCarsDataResult.map(async (car) => {
                 // Lấy đánh giá trung bình cho xe này
-                const avgRatingResult = await DonHang.findOne({
+                const avgRatingResult = await ChiTietDonHang.findAll({
                     attributes: [
-                        [Sequelize.fn('AVG', Sequelize.col('DanhGia.diem')), 'avgRating']
+                        [Sequelize.fn('AVG', Sequelize.col('danhGia.soSao')), 'avgRating']
                     ],
+                    where: {
+                        idXe: car.idXe
+                    },
                     include: [{
-                        model: ChiTietDonHang,
-                        attributes: [],
-                        where: {
-                            idXe: car.idXe
-                        }
-                    }, {
                         model: DanhGia,
+                        as: 'danhGia',       // ⚠️ Phải khớp với alias đã định nghĩa
                         attributes: []
                     }],
                     raw: true
                 });
-                
+
                 const avgRating = avgRatingResult?.avgRating || 0;
                 
                 // Tính tăng trưởng cho xe này

@@ -14,7 +14,7 @@ const CarList = () => {
     useEffect(() => {
         const fetchCars = async () => {
             try {
-                const response = await Api.get("/client/xe/get-all");
+                const response = await Api.get("/client/xe/get-all-client");
                 setCars(response.data.data);
             } catch (err) {
                 setError(err.message);

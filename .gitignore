@@ -1,2 +1,9 @@
 car-rental-backend/node_modules/
 car-rental-website/node_modules/
+.env
+chatbot.py
+# API Keys and Environment Variables
+.env
+api_key.py
+.env.local
+.env.*.local

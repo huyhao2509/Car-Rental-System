@@ -39,7 +39,7 @@ const DashboardReports = ({ formatCurrency }) => {
     const fetchReportData = async () => {
       setLoading(true);
       try {
-        const response = await Api.get('client/don-hang/admin/reports', {
+        const response = await Api.get('admin/don-hang/admin/reports', {
           params: {
             period: reportPeriod,
             year: yearFilter,

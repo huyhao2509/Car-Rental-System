@@ -503,7 +503,7 @@ const DonHang = () => {
                         <div className="p-4 bg-yellow-50 rounded-lg">
                             <p className="text-sm font-medium text-gray-500">Chưa thanh toán</p>
                             <p className="text-2xl font-bold text-yellow-600">
-                                {orders && orders.length > 0 ? orders.filter(order => order.trangThai === ORDER_STATUS.DA_TAO_DON_HANG).length : 0}
+                                {orders && orders.length > 0 ? orders.filter(order => order.trangThai != ORDER_STATUS.DA_HOAN_THANH && order.trangThai != ORDER_STATUS.DA_THANH_TOAN && order.trangThai != ORDER_STATUS.DA_HUY_DON_HANG).length : 0}
                             </p>
                         </div>
                         <div className="p-4 bg-red-50 rounded-lg">

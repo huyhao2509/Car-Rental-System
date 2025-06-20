@@ -149,7 +149,7 @@ class NguoiDungController extends Controller {
 
     async createAdmin(req, res) {
         try {
-            const { hoTen, email, soDienThoai, trangThai } = req.body;
+            const { hoTen, email, soDienThoai, trangThai, idChucVu } = req.body;
             const existingUser = await NguoiDung.findOne({ where: { email } });
             if (existingUser) {
                 return res.status(400).json({
@@ -176,7 +176,7 @@ class NguoiDungController extends Controller {
                     email,
                     password: hashedPassword,
                     soDienThoai,
-                    idChucVu: 2,
+                    idChucVu: idChucVu,
                     trangThai: trangThai
                 }
             }, res);
