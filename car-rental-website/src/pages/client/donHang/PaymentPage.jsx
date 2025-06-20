@@ -84,20 +84,19 @@ const PaymentPage = () => {
                 <div className="mt-8 text-center mb-5">
                     <h3 className="text-lg font-semibold mb-2 text-gray-800">Chuyển khoản qua VietQR (MB Bank)</h3>
                     <img
-                        src={`https://img.vietqr.io/image/mb-${thongTin.soTaiKhoan}-qr_only.png?amount=${soTienSauGiamGia || 0}&addInfo=${encodeURIComponent(order.maDonHang || order.id)}&accountName=${encodeURIComponent(thongTin.chuTaiKhoan)}`}
+                        src={`https://img.vietqr.io/image/mb-${thongTin.soTaiKhoan}-qr_only.png?amount=${soTienSauGiamGia || 0}&addInfo=${encodeURIComponent(order.maDonHang)}&accountName=${encodeURIComponent(thongTin.chuTaiKhoan)}`}
                         alt="QR chuyển khoản MB Bank"
                         className="mx-auto rounded-lg border shadow mb-2"
                         style={{ maxWidth: 220 }}
                     />
-                    <div className="text-sm text-gray-600 mb-1">STK: <b>113366668888</b> (MB Bank)</div>
-                    <div className="text-sm text-gray-600 mb-1">Tên tài khoản: <b>NGUYEN VAN A</b></div>
+                    <div className="text-sm text-gray-600 mb-1">STK: <b>{thongTin.soTaiKhoan}</b> (MB Bank)</div>
+                    <div className="text-sm text-gray-600 mb-1">Tên tài khoản: <b>{thongTin.chuTaiKhoan}</b></div>
                     <div className="text-sm text-gray-600">Nội dung chuyển khoản: <b>{order.maDonHang || order.id}</b></div>
                 </div>
 
                 <button
                     className="w-full py-3 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-600 transition mb-3 text-lg shadow"
                     onClick={() => {
-                        alert('Thanh toán thành công! (Demo)');
                         navigate('/donhang');
                     }}
                 >

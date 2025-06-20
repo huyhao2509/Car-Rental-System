@@ -286,18 +286,10 @@ const Footer = () => {
         </div>
       </div>
 
-      <div className="bg-gray-800 text-gray-400 py-6">
+      <div className="bg-red-800 text-gray-400 py-6">
         <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-sm">
           <p>&copy; 2024 Thuê Xe Tự Lái. All rights reserved.</p>
-          <p>
-            Thiết kế bởi{" "}
-            <a
-              href="https://www.facebook.com/PCH.Ser/"
-              className="text-red-500 hover:underline"
-            >
-              HaoPC
-            </a>
-          </p>
+          <p>Thiết kế bởi HuyHao</p>
         </div>
       </div>
     </footer>

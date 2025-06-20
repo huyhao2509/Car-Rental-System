@@ -18,8 +18,24 @@ export default function DashboardUsers() {
     const [userIdDelete, setUserIdDelete] = useState(null);
     const [showEditPasswordModal, setShowEditPasswordModal] = useState(false);
     const [password_new, setPassword_new] = useState('');
+    const [positions, setPositions] = useState([]);
 
     // Form state for adding/editing users
+
+    const getDataChucVus = async () => {
+        try {
+            await Api.get('/admin/chuc-vu/get-all')
+                    .then((res) => {
+                        setPositions(res.data.data);
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                    })
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    };
+
     const [formData, setFormData] = useState({
         hoTen: '',
         email: '',
@@ -210,6 +226,7 @@ export default function DashboardUsers() {
 
     useEffect(() => {
         getDataNguoiDung();
+        getDataChucVus();
     }, []);
 
     return (
@@ -448,6 +465,25 @@ export default function DashboardUsers() {
                                             </select>
                                         </div>
 
+                                        <div>
+                                            <label htmlFor="idChucVu" className="block text-sm font-medium text-gray-700 mb-1">
+                                                Chức Vụ
+                                            </label>
+                                            <select
+                                                name="idChucVu"
+                                                id="idChucVu"
+                                                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                                                value={formData.idChucVu}
+                                                onChange={handleChange}
+                                            >
+                                                {positions.map((chucVu) => (
+                                                    <option key={chucVu.id} value={chucVu.id}>
+                                                        {chucVu.tenChucVu}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+
                                         <div className="flex items-center">
                                             <input
                                                 type="checkbox"
@@ -579,4 +615,4 @@ export default function DashboardUsers() {
             )}
         </div>
     );
-}
+};
