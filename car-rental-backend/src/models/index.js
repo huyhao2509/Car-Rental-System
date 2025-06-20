@@ -71,6 +71,9 @@ db.NguoiDung.belongsTo(db.ChucVu, { foreignKey: 'idChucVu' });
 db.ChucVu.belongsToMany(db.ChucNang, { through: db.ChiTietPhanQuyen, foreignKey: 'idChucVu' });
 db.ChucNang.belongsToMany(db.ChucVu, { through: db.ChiTietPhanQuyen, foreignKey: 'idChucNang' });
 
+db.ChiTietDonHang.hasOne(db.DanhGia, { foreignKey: 'idChiTiet', as: 'danhGia' });
+db.DanhGia.belongsTo(db.ChiTietDonHang, { foreignKey: 'idChiTiet', as: 'chiTietDonHang' });
+
 // Đồng bộ hóa các model với database
 sequelize.sync({ alter: true })
     .then(() => {

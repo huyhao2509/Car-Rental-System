@@ -22,6 +22,9 @@ const upload = multer({
     }
 });
 
+router.get('/get-all-client', XeRouterController.getAll.bind(XeRouterController));
+router.get('/get-detail-client/:id', XeRouterController.getDetail.bind(XeRouterController));
+
 // Route yêu cầu đăng nhập và phân quyền
 router.use(verifyToken);
 

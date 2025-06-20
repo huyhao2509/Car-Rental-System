@@ -11,7 +11,7 @@ import { fileURLToPath } from 'url';
 import './src/services/chatbotService.js';
 
 // Import schedule fetch MB transactions
-// import './src/services/mbTransactionScheduler.js';
+import './src/services/mbTransactionScheduler.js';
 
 
 dotenv.config();
