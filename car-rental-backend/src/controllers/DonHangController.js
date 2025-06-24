@@ -741,7 +741,7 @@ class DonHangController extends Controller {
 
             const totalRevenueResult = await DonHang.sum('thanhTien', {
                 where: {
-                    trangThai: 2
+                    trangThai: DonHang.DA_HOAN_THANH
                 }
             });
             const totalRevenue = totalRevenueResult || 0;
@@ -753,7 +753,7 @@ class DonHangController extends Controller {
             const monthlyRevenueResult = await DonHang.sum('thanhTien', {
                 where: {
                     trangThai: 2,
-                    thoiGianTao: {
+                    thoiGianBatDau: {
                         [Op.between]: [firstDayOfMonth, lastDayOfMonth]
                     }
                 }
