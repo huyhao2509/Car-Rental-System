@@ -54,6 +54,8 @@ const DonHang = () => {
     const handleOrderDetail = (orderId) => {
         console.log("Xem chi tiết đơn hàng:", orderId);
         // Trong thực tế, chuyển hướng đến trang chi tiết đơn hàng
+        // navigate(`/cars/${orderId}`);
+        toast.info(`Chức năng xem chi tiết đơn hàng đang được phát triển`);
     };
 
     const handleCancelOrder = async (orderId) => {
@@ -75,6 +77,7 @@ const DonHang = () => {
     };
 
     const handleSelectOrder = (orderId) => {
+        console.log("Chọn đơn hàng:", orderId);
         setSelectedOrders(prev => {
             if (prev.includes(orderId)) {
                 return prev.filter(id => id !== orderId);

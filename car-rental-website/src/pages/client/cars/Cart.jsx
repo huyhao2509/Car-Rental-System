@@ -30,6 +30,8 @@ const Cart = () => {
         return calculateTotal() + calculateTax();
     };
 
+
+
     // Xóa đơn hàng khỏi giỏ hàng
     const removeItem = async (id) => {
         try {

@@ -4,10 +4,8 @@ const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
 const crypto = require('crypto');
 const moment = require('moment');
-const vnpayConfig = require('../../vnpay.config');
 const qs = require('qs');
 const dateFormat = require('dateformat');
-const vnpay = require('vnpay');
 
 class DonHangController extends Controller {
     constructor() {
@@ -332,212 +330,40 @@ class DonHangController extends Controller {
 
     async layDonHangAll(req, res) {
         try {
-            const authHeader = req.headers.authorization;
-            if (!authHeader || !authHeader.startsWith('Bearer ')) {
-                return res.status(401).json({
-                    status: false,
-                    message: 'Không tìm thấy token xác thực'
-                });
-            }
-            const token = authHeader.split(' ')[1];
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            const idNguoiDung = decoded.id;
             const donHang = await DonHang.findAll({
-                where: { idNguoiDung },
                 include: [
                     {
                         model: ChiTietDonHang,
                         include: [
                             {
                                 model: Xe,
-                                attributes: ['id', 'tenXe', 'bienSoXe', 'namSanXuat', 'giaTheoGio', 'giaTheoNgay', 'hinhAnh'],
+                                attributes: ['tenXe', 'hinhAnh'],
+                                include: [
+                                    {
+                                        model: HangXe,
+                                        attributes: ['tenHangXe']
+                                    },
+                                    {
+                                        model: LoaiXe,
+                                        attributes: ['tenLoaiXe']
+                                    }
+                                ]
                             }
                         ]
+                    },
+                    {
+                        model: NguoiDung,
+                        attributes: ['hoTen', 'soDienThoai']
                     }
                 ]
             });
+
             res.status(200).json({
-                status: true,
                 data: donHang
             });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
-    }
-
-    async createPaymentUrl(req, res) {
-        try {
-            const ipAddr = req.headers['x-forwarded-for'] ||
-                req.connection.remoteAddress ||
-                req.socket?.remoteAddress ||
-                req.connection?.socket?.remoteAddress;
-
-            const danhSachDonHang = await DonHang.findAll({
-                where: {
-                    id: { [Op.in]: req.body.listDonHang }
-                }
-            });
-
-            const amount = danhSachDonHang.reduce((total, donHang) => {
-                return total + donHang.thanhTien;
-            }, 0);
-
-            let locale = 'vn';
-            let currCode = 'VND';
-            let date = new Date();
-            let createDate = moment(date).format('YYYYMMDDHHmmss');
-            let orderId = moment(date).format('DDHHmmss'); // giống mẫu
-
-            let vnp_Params = {
-                vnp_Version: '2.1.0',
-                vnp_Command: 'pay',
-                vnp_TmnCode: "NJJ0R8FS",
-                vnp_Locale: locale,
-                vnp_CurrCode: currCode,
-                vnp_TxnRef: orderId,
-                vnp_OrderInfo: `Thanh toan don hang ${orderId}`,
-                vnp_OrderType: 'other',
-                vnp_Amount: (amount * 100).toString(),
-                vnp_ReturnUrl: vnpayConfig.vnp_ReturnUrl,
-                vnp_IpAddr: ipAddr,
-                vnp_CreateDate: createDate
-            };
-            vnp_Params['vnp_BankCode'] = "NCB";
-            vnp_Params = this.sortObject(vnp_Params);
-
-            const signData = qs.stringify(vnp_Params, { encode: false });
-            const hmac = crypto.createHmac('sha512', "BYKJBHPPZKQMKBIBGGXIYKWYFAYSJXCW");
-            const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
-            vnp_Params['vnp_SecureHash'] = signed;
-
-            const paymentUrl = vnpayConfig.vnp_Url + '?' + qs.stringify(vnp_Params, { encode: false });
-
-            return res.status(200).json({
-                status: true,
-                data: { paymentUrl }
-            });
-        } catch (error) {
-            console.log('Lỗi khi tạo URL thanh toán:', error);
-            return res.status(500).json({
-                status: false,
-                message: 'Đã xảy ra lỗi khi tạo URL thanh toán',
-                error: error.message
-            });
-        }
-    }
-
-    async createPaymentUrlVNPay(req, res) {
-        try {
-            const ipAddr = req.headers['x-forwarded-for'] ||
-                req.connection.remoteAddress ||
-                req.socket?.remoteAddress ||
-                req.connection?.socket?.remoteAddress;
-
-            // Lấy danh sách đơn hàng từ database
-            const danhSachDonHang = await DonHang.findAll({
-                where: {
-                    id: { [Op.in]: req.body.listDonHang }
-                }
-            });
-
-            // Tính tổng tiền từ các đơn hàng
-            const amount = danhSachDonHang.reduce((total, donHang) => {
-                return total + donHang.thanhTien;
-            }, 0);
-
-            let locale = 'vn';
-            let currCode = 'VND';
-            let date = new Date();
-            let createDate = moment(date).format('YYYYMMDDHHmmss');
-            let orderId = moment(date).format('DDHHmmss');
-
-            // Sử dụng thư viện vnpay.js.org để build URL
-            const vnp_Params = {
-                vnp_Version: '2.1.0',
-                vnp_Command: 'pay',
-                vnp_TmnCode: 'WDDPOL18',
-                vnp_Locale: locale,
-                vnp_CurrCode: currCode,
-                vnp_TxnRef: orderId,
-                vnp_OrderInfo: `Thanh toan don hang ${orderId}`,
-                vnp_OrderType: 'other',
-                vnp_Amount: (amount * 100).toString(),
-                vnp_ReturnUrl: vnpayConfig.vnp_ReturnUrl,
-                vnp_IpAddr: ipAddr,
-                vnp_CreateDate: createDate,
-                vnp_BankCode: 'VNBANK'
-            };
-
-            // Build URL bằng vnpay.js.org
-            const paymentUrl = vnpay.buildCheckoutUrl(
-                vnp_Params,
-                'MAD4SA08JZR9WMBTB2CATVM585TXZF2G',
-                'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'
-            );
-
-            return res.status(200).json({
-                status: true,
-                data: { paymentUrl }
-            });
-        } catch (error) {
-            console.log('Lỗi khi tạo URL thanh toán VNPay:', error);
-            return res.status(500).json({
-                status: false,
-                message: 'Đã xảy ra lỗi khi tạo URL thanh toán VNPay',
-                error: error.message
-            });
-        }
-    }
-
-    // Hàm xác thực callback từ VNPay (ReturnUrl)
-    async vnpayReturn(req, res) {
-        try {
-            const vnp_Params = req.query;
-            const secureHash = vnp_Params['vnp_SecureHash'];
-            delete vnp_Params['vnp_SecureHash'];
-            const isValid = vnpay.validateReturnUrl(vnp_Params, 'MAD4SA08JZR9WMBTB2CATVM585TXZF2G', secureHash);
-            if (isValid) {
-                // Xử lý logic thành công, ví dụ: cập nhật trạng thái đơn hàng
-                return res.send('Thanh toán thành công!');
-            } else {
-                return res.send('Chữ ký không hợp lệ!');
-            }
-        } catch (error) {
-            return res.status(500).send('Lỗi xử lý callback VNPay');
-        }
-    }
-
-    // Hàm xác thực callback IPN từ VNPay
-    async vnpayIpn(req, res) {
-        try {
-            const vnp_Params = req.query;
-            const secureHash = vnp_Params['vnp_SecureHash'];
-            delete vnp_Params['vnp_SecureHash'];
-            const isValid = vnpay.validateIpnUrl(vnp_Params, 'MAD4SA08JZR9WMBTB2CATVM585TXZF2G', secureHash);
-            if (isValid) {
-                // Xử lý logic cập nhật trạng thái đơn hàng
-                return res.json({ RspCode: '00', Message: 'Confirm Success' });
-            } else {
-                return res.json({ RspCode: '97', Message: 'Invalid signature' });
-            }
-        } catch (error) {
-            return res.status(500).json({ RspCode: '99', Message: 'Lỗi xử lý IPN VNPay' });
-        }
-    }
-
-    sortObject(obj) {
-        const sorted = {};
-        const keys = Object.keys(obj).sort();
-        for (const key of keys) {
-            sorted[key] = obj[key];
-        }
-        return sorted;
-    }
-
-    queryString(obj) {
-        return Object.keys(obj)
-            .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`)
-            .join('&');
     }
 
     async layDonHangAllAdmin(req, res) {
@@ -741,7 +567,7 @@ class DonHangController extends Controller {
 
             const totalRevenueResult = await DonHang.sum('thanhTien', {
                 where: {
-                    trangThai: 2
+                    trangThai: DonHang.DA_HOAN_THANH
                 }
             });
             const totalRevenue = totalRevenueResult || 0;
@@ -753,7 +579,7 @@ class DonHangController extends Controller {
             const monthlyRevenueResult = await DonHang.sum('thanhTien', {
                 where: {
                     trangThai: 2,
-                    thoiGianTao: {
+                    thoiGianBatDau: {
                         [Op.between]: [firstDayOfMonth, lastDayOfMonth]
                     }
                 }
