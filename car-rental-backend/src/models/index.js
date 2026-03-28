@@ -7,7 +7,7 @@ const sequelize = new Sequelize(
     process.env.DB_PASSWORD,
     {
         host: process.env.DB_HOST,
-        dialect: process.env.DB_DIALECT,
+        dialect: 'mysql',
         port: process.env.DB_PORT,
         logging: false,
         timezone: '+07:00'
@@ -74,13 +74,19 @@ db.ChucNang.belongsToMany(db.ChucVu, { through: db.ChiTietPhanQuyen, foreignKey:
 db.ChiTietDonHang.hasOne(db.DanhGia, { foreignKey: 'idChiTiet', as: 'danhGia' });
 db.DanhGia.belongsTo(db.ChiTietDonHang, { foreignKey: 'idChiTiet', as: 'chiTietDonHang' });
 
-// Đồng bộ hóa các model với database
-sequelize.sync({ alter: true })
-    .then(() => {
-        console.log('Đồng bộ database thành công');
-    })
-    .catch((error) => {
-        console.error('Lỗi đồng bộ database:', error);
-    });
+// Chỉ đồng bộ schema khi bật explicit để tránh lỗi xung đột FK/PK trên DB đã có dữ liệu.
+const shouldSync = String(process.env.DB_AUTO_SYNC).toLowerCase() === 'true';
+if (shouldSync) {
+    const useAlter = String(process.env.DB_SYNC_ALTER).toLowerCase() === 'true';
+    sequelize.sync({ alter: useAlter })
+        .then(() => {
+            console.log(`Đồng bộ database thành công (alter=${useAlter})`);
+        })
+        .catch((error) => {
+            console.error('Lỗi đồng bộ database:', error);
+        });
+} else {
+    console.log('Bỏ qua sequelize.sync (DB_AUTO_SYNC != true).');
+}
 
 module.exports = db; 

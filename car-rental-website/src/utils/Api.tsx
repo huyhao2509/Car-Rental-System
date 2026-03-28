@@ -1,4 +1,4 @@
-const baseURL = "http://localhost:5000/api/";
+const baseURL = "/api/";
 import axios from "axios";
 import { toast } from "react-toastify";
 

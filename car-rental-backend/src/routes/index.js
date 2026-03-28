@@ -28,7 +28,7 @@ const initRoutes = (app) => {
 
     // app.use('/api/v1/chatbot', ChatbotRouter);
 
-    app.use('/', (req, res) => {
+    app.get('/', (req, res) => {
         res.json({
             success: true,
             message: 'Car Rental API is running'
