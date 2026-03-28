@@ -1,9 +1,29 @@
+# Dependencies
+node_modules/
 car-rental-backend/node_modules/
 car-rental-website/node_modules/
+
+# Build outputs
+dist/
+build/
+coverage/
+car-rental-website/dist/
+
+# Environment and secrets
 .env
-chatbot.py
-# API Keys and Environment Variables
-.env
-api_key.py
 .env.local
 .env.*.local
+api_key.py
+
+# Local chatbot artifacts
+chatbot.py
+
+# Logs and temp files
+*.log
+logs/
+*.tmp
+
+# Editor/system files
+.vscode/
+.idea/
+.DS_Store
