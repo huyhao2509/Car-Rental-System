@@ -41,8 +41,12 @@ const Chatbot = () => {
         setIsLoading(true);
 
         try {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-            const response = await fetch(`${apiUrl}/api/chatbot/ask`, {
+            const configuredApiUrl = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+            const endpoint = configuredApiUrl
+                ? `${configuredApiUrl}/api/chatbot/ask`
+                : '/api/chatbot/ask';
+
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

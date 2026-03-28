@@ -24,14 +24,21 @@ const redisClient = redis.createClient({
     }
 });
 
+// Avoid crashing the whole app when Redis is unavailable.
+// We still log the error, but let the Express server keep running.
+redisClient.on('error', (err) => {
+    console.error('Redis client error:', err?.message || err);
+});
+
 const connectRedis = async () => {
     try {
         // In newer versions of redis client, connect() is required
         await redisClient.connect();
         console.log("Redis connection has been established successfully.");
+        return true;
     } catch (error) {
         console.error("Unable to connect to Redis:", error);
-        throw error;
+        return false;
     }
 };
 

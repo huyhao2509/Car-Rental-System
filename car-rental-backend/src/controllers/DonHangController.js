@@ -5,7 +5,7 @@ const { Op } = require('sequelize');
 const crypto = require('crypto');
 const moment = require('moment');
 const qs = require('qs');
-const dateFormat = require('dateformat');
+// const dateFormat = require('dateformat');
 
 class DonHangController extends Controller {
     constructor() {
@@ -54,15 +54,15 @@ class DonHangController extends Controller {
                     idNguoiDung,
                     trangThai,
                     [Op.or]: [
-                        {
+                        {// 1. Thời gian bắt đầu nằm trong khoảng đã đặt
                             thoiGianBatDau: { [Op.lte]: thoiGianBatDau },
                             thoiGianKetThuc: { [Op.gte]: thoiGianBatDau }
                         },
-                        {
+                        {// 2. Thời gian kết thúc nằm trong khoảng đã đặt
                             thoiGianBatDau: { [Op.lte]: thoiGianKetThuc },
                             thoiGianKetThuc: { [Op.gte]: thoiGianKetThuc }
                         },
-                        {
+                        {// 3. Khoảng đã đặt nằm trong khoảng đã chọn
                             thoiGianBatDau: { [Op.gte]: thoiGianBatDau },
                             thoiGianKetThuc: { [Op.lte]: thoiGianKetThuc }
                         }
@@ -79,16 +79,7 @@ class DonHangController extends Controller {
 
     async themGioHang(req, res) {
         try {
-            const authHeader = req.headers.authorization;
-            if (!authHeader || !authHeader.startsWith('Bearer ')) {
-                return res.status(401).json({
-                    status: false,
-                    message: 'Không tìm thấy token xác thực'
-                });
-            }
-            const token = authHeader.split(' ')[1];
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            const idNguoiDung = decoded.id;
+            const idNguoiDung = req.user.id;
 
             const xeDaDat = await this.checkXeDaDat(req.body.idXe, new Date(req.body.thoiGianBatDau), new Date(req.body.thoiGianKetThuc));
             if (xeDaDat) {
@@ -144,16 +135,7 @@ class DonHangController extends Controller {
 
     async layGioHang(req, res) {
         try {
-            const authHeader = req.headers.authorization;
-            if (!authHeader || !authHeader.startsWith('Bearer ')) {
-                return res.status(401).json({
-                    status: false,
-                    message: 'Không tìm thấy token xác thực'
-                });
-            }
-            const token = authHeader.split(' ')[1];
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            const idNguoiDung = decoded.id;
+            const idNguoiDung = req.user.id;
 
             const donHang = await DonHang.findAll({
                 where: { idNguoiDung, trangThai: 0, isThanhToan: null },
@@ -184,16 +166,7 @@ class DonHangController extends Controller {
 
     async xoaGioHang(req, res) {
         try {
-            const authHeader = req.headers.authorization;
-            if (!authHeader || !authHeader.startsWith('Bearer ')) {
-                return res.status(401).json({
-                    status: false,
-                    message: 'Không tìm thấy token xác thực'
-                });
-            }
-            const token = authHeader.split(' ')[1];
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            const idNguoiDung = decoded.id;
+            const idNguoiDung = req.user.id;
 
             const donHang = await DonHang.findOne({
                 where: { id: req.params.id, idNguoiDung }
@@ -227,16 +200,7 @@ class DonHangController extends Controller {
 
     async thanhToan(req, res) {
         try {
-            const authHeader = req.headers.authorization;
-            if (!authHeader || !authHeader.startsWith('Bearer ')) {
-                return res.status(401).json({
-                    status: false,
-                    message: 'Không tìm thấy token xác thực'
-                });
-            }
-            const token = authHeader.split(' ')[1];
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            const idNguoiDung = decoded.id;
+            const idNguoiDung = req.user.id;
 
             const listDonHang = req.body.listDonHang;
             for (const donHang of listDonHang) {
@@ -487,16 +451,7 @@ class DonHangController extends Controller {
 
     async huyDonHang(req, res) {
         try {
-            const authHeader = req.headers.authorization;
-            if (!authHeader || !authHeader.startsWith('Bearer ')) {
-                return res.status(401).json({
-                    status: false,
-                    message: 'Không tìm thấy token xác thực'
-                });
-            }
-            const token = authHeader.split(' ')[1];
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            const idNguoiDung = decoded.id;
+            const idNguoiDung = req.user.id;
 
             const donHang = await DonHang.findOne({
                 where: { id: req.params.id, idNguoiDung }
