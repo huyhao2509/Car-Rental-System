@@ -13,6 +13,25 @@ class NguoiDungController extends Controller {
         super(NguoiDung);
     }
 
+    handleServerError(res, error, options = {}) {
+        const {
+            responseKey = 'status',
+            logMessage = null,
+            message = 'Lỗi server',
+            errorValue = null
+        } = options;
+
+        if (logMessage) {
+            console.error(logMessage, error);
+        }
+
+        return res.status(500).json({
+            [responseKey]: false,
+            message,
+            error: errorValue || error.message
+        });
+    }
+
     async register(req, res) {
         try {
             const { hoTen, email, password, soDienThoai } = req.body;
@@ -47,11 +66,7 @@ class NguoiDungController extends Controller {
                 }
             }, res);
         } catch (error) {
-            return res.status(500).json({
-                status: false,
-                message: 'Lỗi server',
-                error: error.message
-            });
+            return this.handleServerError(res, error);
         }
     }
 
@@ -106,11 +121,7 @@ class NguoiDungController extends Controller {
                 }
             });
         } catch (error) {
-            return res.status(500).json({
-                status: false,
-                message: 'Lỗi server',
-                error: error.message
-            });
+            return this.handleServerError(res, error);
         }
     }
 
@@ -126,11 +137,7 @@ class NguoiDungController extends Controller {
                 data: nguoiDungWithoutPassword
             });
         } catch (error) {
-            return res.status(500).json({
-                status: false,
-                message: 'Lỗi server',
-                error: error.message
-            });
+            return this.handleServerError(res, error);
         }
     }
 
@@ -141,9 +148,7 @@ class NguoiDungController extends Controller {
                 data: nguoiDung
             });
         } catch (error) {
-            return res.status(500).json({
-                 error: error.message
-            });
+            return this.handleServerError(res, error, { message: 'Lỗi lấy danh sách người dùng' });
         }
     }
 
@@ -181,11 +186,7 @@ class NguoiDungController extends Controller {
                 }
             }, res);
         } catch (error) {
-            return res.status(500).json({
-                status: false,
-                message: 'Lỗi server',
-                error: error.message
-            });
+            return this.handleServerError(res, error);
         }
     }
 
@@ -207,11 +208,7 @@ class NguoiDungController extends Controller {
             });
 
         } catch (error) {
-            return res.status(500).json({
-                status: false,
-                message: 'Lỗi server',
-                error: error.message
-            });
+            return this.handleServerError(res, error);
         }
     }
 
@@ -233,11 +230,7 @@ class NguoiDungController extends Controller {
                 message: 'Xóa tài khoản admin thành công',
             });
         } catch (error) {
-            return res.status(500).json({
-                status: false,
-                message: 'Lỗi server',
-                error: error.message
-            });
+            return this.handleServerError(res, error);
         }
     }
 
@@ -260,11 +253,7 @@ class NguoiDungController extends Controller {
                 message: 'Cập nhật trạng thái thành công',
             });
         } catch (error) {
-            return res.status(500).json({
-                status: false,
-                message: 'Lỗi server',
-                error: error.message
-            });
+            return this.handleServerError(res, error);
         }
     }
 
@@ -291,11 +280,7 @@ class NguoiDungController extends Controller {
             });
 
         } catch (error) {
-            return res.status(500).json({
-                status: false,
-                message: 'Lỗi server',
-                error: error.message
-            });
+            return this.handleServerError(res, error);
         }
     }
 
@@ -352,11 +337,9 @@ class NguoiDungController extends Controller {
                         await fs.unlink(file.path);
                     }
                 } catch (uploadError) {
-                    console.error('Lỗi upload file:', uploadError);
-                    return res.status(500).json({
-                        status: false,
-                        message: 'Lỗi khi upload ảnh',
-                        error: uploadError.message
+                    return this.handleServerError(res, uploadError, {
+                        logMessage: 'Lỗi upload file:',
+                        message: 'Lỗi khi upload ảnh'
                     });
                 }
             }
@@ -371,12 +354,7 @@ class NguoiDungController extends Controller {
                 data: updatedUser
             });
         } catch (error) {
-            console.error('Lỗi cập nhật profile:', error);
-            return res.status(500).json({
-                status: false,
-                message: 'Lỗi server',
-                error: error.message
-            });
+            return this.handleServerError(res, error, { logMessage: 'Lỗi cập nhật profile:' });
         }
     }
 
@@ -400,11 +378,7 @@ class NguoiDungController extends Controller {
                 data    : nguoiDung,
             });
         } catch (error) {
-            return res.status(500).json({
-                status: false,
-                message: 'Lỗi server',
-                error: error.message
-            });
+            return this.handleServerError(res, error);
         }
     }
 
@@ -451,11 +425,9 @@ class NguoiDungController extends Controller {
                         data: updatedUser
                     });
                 } catch (uploadError) {
-                    console.error('Lỗi upload avatar:', uploadError);
-                    return res.status(500).json({
-                        status: false,
-                        message: 'Lỗi khi upload ảnh',
-                        error: uploadError.message
+                    return this.handleServerError(res, uploadError, {
+                        logMessage: 'Lỗi upload avatar:',
+                        message: 'Lỗi khi upload ảnh'
                     });
                 }
             } else {
@@ -465,11 +437,7 @@ class NguoiDungController extends Controller {
                 });
             }
         } catch (error) {
-            return res.status(500).json({
-                status: false,
-                message: 'Lỗi server',
-                error: error.message
-            });
+            return this.handleServerError(res, error);
         }
     }
 
@@ -509,11 +477,7 @@ class NguoiDungController extends Controller {
                 data: updatedUser
             });
         } catch (error) {
-            return res.status(500).json({
-                status: false,
-                message: 'Lỗi server',
-                error: error.message
-            });
+            return this.handleServerError(res, error);
         }
     }
 
@@ -553,12 +517,7 @@ class NguoiDungController extends Controller {
                 data: updatedUser
             });
         } catch (error) {
-            console.error('Lỗi khi xóa ảnh bằng lái:', error);
-            return res.status(500).json({
-                status: false,
-                message: 'Lỗi server',
-                error: error.message
-            });
+            return this.handleServerError(res, error, { logMessage: 'Lỗi khi xóa ảnh bằng lái:' });
         }
     }
 
@@ -605,10 +564,11 @@ class NguoiDungController extends Controller {
             const emailResult = await sendOTPEmail(email, otp);
             
             if (!emailResult.success) {
-                return res.status(500).json({
-                    success: false,
+                return this.handleServerError(res, new Error(emailResult.error || 'Không thể gửi email OTP'), {
+                    responseKey: 'success',
                     message: 'Không thể gửi email OTP',
-                    error: emailResult.error
+                    errorValue: emailResult.error || 'Không xác định',
+                    logMessage: 'Gửi OTP email thất bại:'
                 });
             }
             
@@ -617,11 +577,9 @@ class NguoiDungController extends Controller {
                 message: 'Mã OTP đã được gửi tới email của bạn'
             });
         } catch (error) {
-            console.error('Lỗi khi gửi OTP:', error);
-            return res.status(500).json({
-                success: false,
-                message: 'Lỗi server',
-                error: error.message
+            return this.handleServerError(res, error, {
+                responseKey: 'success',
+                logMessage: 'Lỗi khi gửi OTP:'
             });
         }
     }
@@ -694,11 +652,9 @@ class NguoiDungController extends Controller {
                 }
             });
         } catch (error) {
-            console.error('Lỗi khi xác thực OTP:', error);
-            return res.status(500).json({
-                success: false,
-                message: 'Lỗi server',
-                error: error.message
+            return this.handleServerError(res, error, {
+                responseKey: 'success',
+                logMessage: 'Lỗi khi xác thực OTP:'
             });
         }
     }
@@ -710,17 +666,24 @@ class NguoiDungController extends Controller {
      */
     async forgotPassword(req, res) {
         try {
-            const { email } = req.body;
+            const normalizedEmail = req.body?.email?.trim().toLowerCase();
 
-            if (!email) {
+            if (!normalizedEmail) {
                 return res.status(400).json({
                     success: false,
                     message: 'Email không được để trống'
                 });
             }
 
+            if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+                return res.status(500).json({
+                    success: false,
+                    message: 'Hệ thống email chưa được cấu hình, vui lòng liên hệ quản trị viên'
+                });
+            }
+
             // Kiểm tra email có tồn tại trong hệ thống không
-            const user = await NguoiDung.findOne({ where: { email } });
+            const user = await NguoiDung.findOne({ where: { email: normalizedEmail } });
             if (!user) {
                 return res.status(404).json({
                     success: false,
@@ -742,19 +705,25 @@ class NguoiDungController extends Controller {
             // Hash mật khẩu mới
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(newPassword, salt);
+            const oldHashedPassword = user.password;
             
             // Cập nhật mật khẩu mới vào database
             user.password = hashedPassword;
             await user.save();
             
             // Gửi mật khẩu mới qua email
-            const emailResult = await sendPasswordResetEmail(email, newPassword);
+            const emailResult = await sendPasswordResetEmail(normalizedEmail, newPassword);
             
             if (!emailResult.success) {
-                return res.status(500).json({
-                    success: false,
+                // Rollback lại mật khẩu cũ để tránh khóa người dùng khi gửi email thất bại
+                user.password = oldHashedPassword;
+                await user.save();
+
+                return this.handleServerError(res, new Error(emailResult.error || 'Không thể gửi email chứa mật khẩu mới'), {
+                    responseKey: 'success',
                     message: 'Không thể gửi email chứa mật khẩu mới',
-                    error: emailResult.error
+                    errorValue: emailResult.error || 'Không xác định',
+                    logMessage: 'Gửi email mật khẩu mới thất bại:'
                 });
             }
             
@@ -763,11 +732,9 @@ class NguoiDungController extends Controller {
                 message: 'Mật khẩu mới đã được gửi tới email của bạn'
             });
         } catch (error) {
-            console.error('Lỗi khi xử lý quên mật khẩu:', error);
-            return res.status(500).json({
-                success: false,
-                message: 'Lỗi server',
-                error: error.message
+            return this.handleServerError(res, error, {
+                responseKey: 'success',
+                logMessage: 'Lỗi khi xử lý quên mật khẩu:'
             });
         }
     }
@@ -827,11 +794,9 @@ class NguoiDungController extends Controller {
                 message: 'Mật khẩu đã được cập nhật thành công'
             });
         } catch (error) {
-            console.error('Lỗi khi đặt lại mật khẩu:', error);
-            return res.status(500).json({
-                success: false,
-                message: 'Lỗi server',
-                error: error.message
+            return this.handleServerError(res, error, {
+                responseKey: 'success',
+                logMessage: 'Lỗi khi đặt lại mật khẩu:'
             });
         }
     }

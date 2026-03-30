@@ -1,4 +1,5 @@
-const baseURL = "/api/";
+const envApiUrl = import.meta.env.VITE_API_URL;
+const baseURL = envApiUrl && envApiUrl.trim() !== '' ? envApiUrl : "/api/";
 import axios from "axios";
 import { toast } from "react-toastify";
 

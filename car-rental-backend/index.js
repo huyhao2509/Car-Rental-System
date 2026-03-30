@@ -20,6 +20,28 @@ if (String(process.env.MB_SCHEDULER_ENABLED).toLowerCase() === 'true') {
 
 const app = express();
 
+const parseAllowedOrigins = () => {
+    const configuredOrigins = [
+        process.env.CLIENT_URL,
+        process.env.FRONTEND_URL,
+        process.env.FRONTEND_URLS
+    ]
+        .filter(Boolean)
+        .flatMap((value) => String(value).split(','))
+        .map((value) => value.trim())
+        .filter(Boolean);
+
+    return Array.from(
+        new Set([
+            ...configuredOrigins,
+            'http://localhost:5173',
+            'http://127.0.0.1:5173'
+        ])
+    );
+};
+
+const allowedOrigins = parseAllowedOrigins();
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Rate limiting - apply before other middlewares
@@ -27,8 +49,15 @@ app.use(generalLimiter);
 
 app.use(
     cors({
-        origin: [process.env.CLIENT_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+        origin: (origin, callback) => {
+            if (!origin || allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+
+            return callback(new Error('CORS policy: Origin is not allowed'));
+        },
         methods: ["POST", "GET", "PUT", "DELETE"],
+        credentials: true
     })
 );
 app.use(express.json({ limit: "10mb" }));

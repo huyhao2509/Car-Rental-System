@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const LoginModal = ({ isOpen, onClose }) => {
     const { sendOTP, verifyOTP, login } = useAuth();
     const [activeTab, setActiveTab] = useState('password'); // 'password' hoặc 'otp'
-    let navigate = useNavigate(); // Hook để điều hướng
     // State cho đăng nhập bằng email/password
     const [formData, setFormData] = useState({
         email: '',
@@ -202,9 +201,9 @@ const LoginModal = ({ isOpen, onClose }) => {
                                 required
                             />
                             <div className="mt-1 text-right">
-                                <a href="#" className="text-blue-600 text-sm hover:underline">
+                                <Link to="/forgot-password" onClick={onClose} className="text-blue-600 text-sm hover:underline">
                                     Quên mật khẩu?
-                                </a>
+                                </Link>
                             </div>
                         </div>
 

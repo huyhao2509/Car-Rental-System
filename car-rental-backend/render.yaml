@@ -1,0 +1,46 @@
+services:
+  - type: web
+    name: car-rental-backend
+    env: node
+    rootDir: car-rental-backend
+    plan: free
+    region: singapore
+    buildCommand: npm install
+    startCommand: node index.js
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: CLIENT_URL
+        sync: false
+      - key: FRONTEND_URLS
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: REDIS_HOST
+        sync: false
+      - key: REDIS_PORT
+        sync: false
+      - key: REDIS_PASSWORD
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: PINATA_JWT
+        sync: false
+      - key: MB_SCHEDULER_ENABLED
+        value: false
