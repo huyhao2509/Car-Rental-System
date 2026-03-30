@@ -1,13 +1,11 @@
-// src/utils/logger.js
-import { createLogger, transports, format } from 'winston';
+class ApiError extends Error {
+    constructor(statusCode, message, details = null) {
+        super(message);
+        this.name = 'ApiError';
+        this.statusCode = statusCode;
+        this.details = details;
+        Error.captureStackTrace(this, this.constructor);
+    }
+}
 
-const logger = createLogger({
-    level: 'error',
-    format: format.combine(format.timestamp(), format.json()),
-    transports: [
-        new transports.File({ filename: 'error.log' }),
-        new transports.Console(),
-    ],
-});
-
-export default logger;
+module.exports = ApiError;

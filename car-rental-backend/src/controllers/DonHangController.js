@@ -12,6 +12,28 @@ class DonHangController extends Controller {
         super(DonHang);
     }
 
+    handleInternalError(res, error, options = {}) {
+        const {
+            contextMessage = null,
+            responseType = 'error-only',
+            message = 'Lỗi server'
+        } = options;
+
+        if (contextMessage) {
+            console.error(contextMessage, error);
+        }
+
+        if (responseType === 'status-message') {
+            return res.status(500).json({
+                status: false,
+                message,
+                error: error.message
+            });
+        }
+
+        return res.status(500).json({ error: error.message });
+    }
+
     async checkXeDaDat(idXe, thoiGianBatDau, thoiGianKetThuc) {
         try {
             const donHangCoXe = await ChiTietDonHang.findAll({
@@ -42,7 +64,7 @@ class DonHangController extends Controller {
 
             return donHangCoXe.length > 0;
         } catch (error) {
-            console.log('Lỗi khi kiểm tra xe đã đặt:', error);
+            console.error('Lỗi khi kiểm tra xe đã đặt:', error);
             throw error;
         }
     }
@@ -72,7 +94,7 @@ class DonHangController extends Controller {
 
             return donHang !== null;
         } catch (error) {
-            console.log('Lỗi khi kiểm tra lịch người dùng:', error);
+            console.error('Lỗi khi kiểm tra lịch người dùng:', error);
             throw error;
         }
     };
@@ -122,14 +144,14 @@ class DonHangController extends Controller {
                 message: 'Thêm vào giỏ hàng thành công',
             });
         } catch (error) {
-            console.log('Lỗi khi thêm vào giỏ hàng:', error);
+            console.error('Lỗi khi thêm vào giỏ hàng:', error);
             if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
                 return res.status(401).json({
                     status: false,
                     message: 'Token không hợp lệ hoặc đã hết hạn'
                 });
             }
-            res.status(500).json({ error: error.message });
+            return this.handleInternalError(res, error);
         }
     }
 
@@ -160,7 +182,7 @@ class DonHangController extends Controller {
                 data: donHang
             });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            return this.handleInternalError(res, error);
         }
     }
 
@@ -194,7 +216,7 @@ class DonHangController extends Controller {
                 message: 'Xóa đơn hàng thành công'
             });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            return this.handleInternalError(res, error);
         }
     }
 
@@ -225,7 +247,7 @@ class DonHangController extends Controller {
                 message: 'Tạo đơn hàng thành công'
             });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            return this.handleInternalError(res, error);
         }
     }
 
@@ -283,11 +305,10 @@ class DonHangController extends Controller {
                 data: danhSachDonHang
             });
         } catch (error) {
-            console.log('Lỗi khi lấy thông tin đơn hàng:', error);
-            return res.status(500).json({
-                status: false,
-                message: 'Đã xảy ra lỗi khi lấy thông tin đơn hàng',
-                error: error.message
+            return this.handleInternalError(res, error, {
+                contextMessage: 'Lỗi khi lấy thông tin đơn hàng:',
+                responseType: 'status-message',
+                message: 'Đã xảy ra lỗi khi lấy thông tin đơn hàng'
             });
         }
     }
@@ -326,7 +347,7 @@ class DonHangController extends Controller {
                 data: donHang
             });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            return this.handleInternalError(res, error);
         }
     }
 
@@ -369,7 +390,7 @@ class DonHangController extends Controller {
                 data: donHang
             });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            return this.handleInternalError(res, error);
         }
     }
 
@@ -385,7 +406,7 @@ class DonHangController extends Controller {
                 message: 'Xác nhận thanh toán thành công'
             });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            return this.handleInternalError(res, error);
         }
     }
 
@@ -407,7 +428,7 @@ class DonHangController extends Controller {
                 message: 'Cập nhật trạng thái đơn hàng thành công',
             });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            return this.handleInternalError(res, error);
         }
     }
 
@@ -440,11 +461,10 @@ class DonHangController extends Controller {
                 data: donHangList
             });
         } catch (error) {
-            console.error('Lỗi khi lấy lịch sử đơn hàng:', error);
-            return res.status(500).json({
-                status: false,
-                message: 'Đã xảy ra lỗi khi lấy lịch sử đơn hàng',
-                error: error.message
+            return this.handleInternalError(res, error, {
+                contextMessage: 'Lỗi khi lấy lịch sử đơn hàng:',
+                responseType: 'status-message',
+                message: 'Đã xảy ra lỗi khi lấy lịch sử đơn hàng'
             });
         }
     }
@@ -471,7 +491,7 @@ class DonHangController extends Controller {
                 message: 'Hủy đơn hàng thành công'
             });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            return this.handleInternalError(res, error);
         }
     }
 
@@ -492,7 +512,7 @@ class DonHangController extends Controller {
                 data: khuyenMai
             });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            return this.handleInternalError(res, error);
         }
     }
 
@@ -666,8 +686,11 @@ class DonHangController extends Controller {
 
             res.json({ status: true, data: stats });
         } catch (err) {
-            console.error('Lỗi lấy số liệu dashboard:', err);
-            res.status(500).json({ status: false, message: 'Lỗi lấy số liệu dashboard', error: err.message });
+            return this.handleInternalError(res, err, {
+                contextMessage: 'Lỗi lấy số liệu dashboard:',
+                responseType: 'status-message',
+                message: 'Lỗi lấy số liệu dashboard'
+            });
         }
     }
 
@@ -978,8 +1001,11 @@ class DonHangController extends Controller {
             
             res.json({ status: true, data: reportsData });
         } catch (err) {
-            console.error('Lỗi lấy số liệu báo cáo:', err);
-            res.status(500).json({ status: false, message: 'Lỗi lấy số liệu báo cáo', error: err.message });
+            return this.handleInternalError(res, err, {
+                contextMessage: 'Lỗi lấy số liệu báo cáo:',
+                responseType: 'status-message',
+                message: 'Lỗi lấy số liệu báo cáo'
+            });
         }
     }
 }

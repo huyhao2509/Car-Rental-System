@@ -30,6 +30,17 @@ class XeRouterController extends Controller {
         super(Xe);
     }
 
+    handleInternalError(res, error, defaultMessage = null) {
+        console.error('Lỗi xử lý xe:', error);
+        if (defaultMessage) {
+            return res.status(500).json({
+                status: false,
+                message: defaultMessage
+            });
+        }
+        return res.status(500).json({ error: error.message });
+    }
+
     async getAll(req, res) {
         try {
             const xe = await this.model.findAll({
@@ -48,15 +59,12 @@ class XeRouterController extends Controller {
                 data: xe,
             });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            return this.handleInternalError(res, error);
         }
     }
 
     async create(req, res) {
         try {
-            console.log('Request body:', req.body);
-            console.log('Request file:', req.file);
-
             const { bienSoXe } = req.body;
             
             if (!bienSoXe) {
@@ -91,11 +99,7 @@ class XeRouterController extends Controller {
                     );
                     hinhAnhUrl = pinataResponse.gatewayUrl;
                 } catch (error) {
-                    console.error('Lỗi upload ảnh:', error);
-                    return res.status(500).json({
-                        status: false,
-                        message: 'Có lỗi xảy ra khi upload ảnh'
-                    });
+                    return this.handleInternalError(res, error, 'Có lỗi xảy ra khi upload ảnh');
                 }
             }
 
@@ -121,19 +125,12 @@ class XeRouterController extends Controller {
                 data: xe
             });
         } catch (error) {
-            console.error("Lỗi:", error);
-            res.status(500).json({ 
-                status: false,
-                message: error.message || 'Có lỗi xảy ra khi tạo xe'
-            });
+            return this.handleInternalError(res, error, error.message || 'Có lỗi xảy ra khi tạo xe');
         }
     }
 
     async update(req, res) {
         try {
-            console.log('Request body:', req.body);
-            console.log('Request file:', req.file);
-
             const { id, bienSoXe } = req.body;
 
             if (!id || !bienSoXe) {
@@ -179,11 +176,7 @@ class XeRouterController extends Controller {
                     );
                     hinhAnhUrl = pinataResponse.gatewayUrl;
                 } catch (error) {
-                    console.error('Lỗi upload ảnh:', error);
-                    return res.status(500).json({
-                        status: false,
-                        message: 'Có lỗi xảy ra khi upload ảnh'
-                    });
+                    return this.handleInternalError(res, error, 'Có lỗi xảy ra khi upload ảnh');
                 }
             }
 
@@ -212,11 +205,7 @@ class XeRouterController extends Controller {
                 data: updatedXe
             });
         } catch (error) {
-            console.error("Lỗi:", error);
-            res.status(500).json({
-                status: false,
-                message: error.message || 'Có lỗi xảy ra khi cập nhật xe'
-            });
+            return this.handleInternalError(res, error, error.message || 'Có lỗi xảy ra khi cập nhật xe');
         }
     }
 
@@ -228,7 +217,7 @@ class XeRouterController extends Controller {
                 message: 'Xóa thành công',
             });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            return this.handleInternalError(res, error);
         }
     }
 
@@ -250,7 +239,7 @@ class XeRouterController extends Controller {
                 data: xe,
             });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            return this.handleInternalError(res, error);
         }
     }
 }

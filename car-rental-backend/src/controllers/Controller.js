@@ -1,6 +1,5 @@
 const { Op } = require('sequelize');
 const ResponseUtil = require('../utils/ResponseUtil');
-const { asyncHandler } = require('../middlewares/errorHandler');
 
 class Controller {
     constructor(model) {
@@ -10,17 +9,9 @@ class Controller {
     async getAll(req, res) {
         try {
             const items = await this.model.findAll();
-            return res.status(200).json({
-                status: true,
-                message: 'Lấy dữ liệu thành công',
-                data: items
-            });
+            return ResponseUtil.success(res, items, 'Lấy dữ liệu thành công');
         } catch (error) {
-            return res.status(500).json({
-                status: false,
-                message: 'Lỗi server',
-                error: error.message
-            });
+            return ResponseUtil.error(res, 'Lỗi server', 500, error.message);
         }
     }
 
@@ -30,29 +21,16 @@ class Controller {
             const item = await this.model.findByPk(id);
             
             if (!item) {
-                return res.status(404).json({
-                    status: false,
-                    message: 'Không tìm thấy dữ liệu'
-                });
+                return ResponseUtil.error(res, 'Không tìm thấy dữ liệu', 404);
             }
 
-            return res.status(200).json({
-                status: true,
-                message: 'Lấy dữ liệu thành công',
-                data: item
-            });
+            return ResponseUtil.success(res, item, 'Lấy dữ liệu thành công');
         } catch (error) {
-            return res.status(500).json({
-                status: false,
-                message: 'Lỗi server',
-                error: error.message
-            });
+            return ResponseUtil.error(res, 'Lỗi server', 500, error.message);
         }
     }
 
     async create(req, res) {
-        console.log(this.model);
-        
         try {
             const newItem = await this.model.create({
                 ...req.body,
@@ -60,17 +38,9 @@ class Controller {
                 thoiGianSua: new Date()
             });
 
-            return res.status(200).json({
-                status: true,
-                message: 'Tạo mới thành công',
-                data: newItem
-            });
+            return ResponseUtil.success(res, newItem, 'Tạo mới thành công');
         } catch (error) {
-            return res.status(500).json({
-                status: false,
-                message: 'Lỗi server',
-                error: error.message
-            });
+            return ResponseUtil.error(res, 'Lỗi server', 500, error.message);
         }
     }
 
@@ -80,10 +50,7 @@ class Controller {
             const item = await this.model.findByPk(id);
 
             if (!item) {
-                return res.status(404).json({
-                    status: false,
-                    message: 'Không tìm thấy dữ liệu'
-                });
+                return ResponseUtil.error(res, 'Không tìm thấy dữ liệu', 404);
             }
 
             await item.update({
@@ -91,17 +58,9 @@ class Controller {
                 thoiGianSua: new Date()
             });
 
-            return res.status(200).json({
-                status: true,
-                message: 'Cập nhật thành công',
-                data: item
-            });
+            return ResponseUtil.success(res, item, 'Cập nhật thành công');
         } catch (error) {
-            return res.status(500).json({
-                status: false,
-                message: 'Lỗi server',
-                error: error.message
-            });
+            return ResponseUtil.error(res, 'Lỗi server', 500, error.message);
         }
     }
 
@@ -111,10 +70,7 @@ class Controller {
             const item = await this.model.findByPk(id);
 
             if (!item) {
-                return res.status(404).json({
-                    status: false,
-                    message: 'Không tìm thấy dữ liệu'
-                });
+                return ResponseUtil.error(res, 'Không tìm thấy dữ liệu', 404);
             }
 
             await item.update({
@@ -122,16 +78,9 @@ class Controller {
                 thoiGianSua: new Date()
             });
 
-            return res.status(200).json({
-                status: true,
-                message: 'Xóa thành công'
-            });
+            return ResponseUtil.success(res, null, 'Xóa thành công');
         } catch (error) {
-            return res.status(500).json({
-                status: false,
-                message: 'Lỗi server',
-                error: error.message
-            });
+            return ResponseUtil.error(res, 'Lỗi server', 500, error.message);
         }
     }
 
@@ -157,25 +106,18 @@ class Controller {
                 order: [[sortBy, sortType]]
             });
 
-            return res.status(200).json({
-                status: true,
-                message: 'Lấy dữ liệu thành công',
-                data: {
-                    items: rows,
-                    pagination: {
-                        page: parseInt(page),
-                        limit: parseInt(limit),
-                        totalItems: count,
-                        totalPages: Math.ceil(count / limit)
-                    }
-                }
-            });
+            return ResponseUtil.paginated(
+                res,
+                rows,
+                {
+                    page: parseInt(page),
+                    limit: parseInt(limit),
+                    totalItems: count
+                },
+                'Lấy dữ liệu thành công'
+            );
         } catch (error) {
-            return res.status(500).json({
-                status: false,
-                message: 'Lỗi server',
-                error: error.message
-            });
+            return ResponseUtil.error(res, 'Lỗi server', 500, error.message);
         }
     }
 }

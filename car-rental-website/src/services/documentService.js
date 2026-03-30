@@ -1,11 +1,11 @@
 // src/services/documentService.js
-import axios from 'axios';
+import Api from '@/utils/Api';
 
 const documentService = {
     uploadDocument: async (formData) => {
         try {
-            const response = await axios.post(
-                'http://localhost:5000/api/documents/upload',
+            const response = await Api.post(
+                '/documents/upload',
                 formData,
                 {
                     headers: {

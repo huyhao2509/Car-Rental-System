@@ -7,6 +7,15 @@ class PhanQuyenController extends Controller {
         super(ChucVu);
     }
 
+    handleInternalError(res, error, message, logMessage) {
+        console.error(logMessage, error);
+        return res.status(500).json({
+            status: false,
+            message,
+            error: error.message
+        });
+    }
+
     async getAll(req, res) {
         try {
             const phanQuyens = await this.model.findAll({
@@ -17,12 +26,12 @@ class PhanQuyenController extends Controller {
                 data: phanQuyens,
             });
         } catch (error) {
-            console.error('Lỗi khi lấy danh sách chức vụ:', error);
-            res.status(500).json({
-                status: false,
-                message: 'Đã có lỗi xảy ra khi lấy danh sách chức vụ',
-                error: error.message
-            });
+            return this.handleInternalError(
+                res,
+                error,
+                'Đã có lỗi xảy ra khi lấy danh sách chức vụ',
+                'Lỗi khi lấy danh sách chức vụ:'
+            );
         }
     }
 
@@ -84,12 +93,12 @@ class PhanQuyenController extends Controller {
                 data: chucNangs,
             });
         } catch (error) {
-            console.error('Lỗi khi lấy danh sách chức năng:', error);
-            res.status(500).json({
-                status: false,
-                message: 'Đã có lỗi xảy ra khi lấy danh sách chức năng',
-                error: error.message
-            });
+            return this.handleInternalError(
+                res,
+                error,
+                'Đã có lỗi xảy ra khi lấy danh sách chức năng',
+                'Lỗi khi lấy danh sách chức năng:'
+            );
         }
     }
 
@@ -147,12 +156,12 @@ class PhanQuyenController extends Controller {
                 role: chucVu
             });
         } catch (error) {
-            console.error('Lỗi khi lấy thông tin phân quyền:', error);
-            res.status(500).json({
-                status: false,
-                message: 'Đã có lỗi xảy ra khi lấy thông tin phân quyền',
-                error: error.message
-            });
+            return this.handleInternalError(
+                res,
+                error,
+                'Đã có lỗi xảy ra khi lấy thông tin phân quyền',
+                'Lỗi khi lấy thông tin phân quyền:'
+            );
         }
     }
 
@@ -191,12 +200,12 @@ class PhanQuyenController extends Controller {
                 message: 'Cập nhật phân quyền thành công'
             });
         } catch (error) {
-            console.error('Lỗi khi cập nhật phân quyền:', error);
-            res.status(500).json({
-                status: false,
-                message: 'Đã có lỗi xảy ra khi cập nhật phân quyền',
-                error: error.message
-            });
+            return this.handleInternalError(
+                res,
+                error,
+                'Đã có lỗi xảy ra khi cập nhật phân quyền',
+                'Lỗi khi cập nhật phân quyền:'
+            );
         }
     }
 
@@ -240,12 +249,12 @@ class PhanQuyenController extends Controller {
                 userPermissions: permissionIds
             });
         } catch (error) {
-            console.error('Lỗi khi kiểm tra quyền người dùng:', error);
-            res.status(500).json({
-                status: false,
-                message: 'Đã có lỗi xảy ra khi kiểm tra quyền người dùng',
-                error: error.message
-            });
+            return this.handleInternalError(
+                res,
+                error,
+                'Đã có lỗi xảy ra khi kiểm tra quyền người dùng',
+                'Lỗi khi kiểm tra quyền người dùng:'
+            );
         }
     }
 
@@ -267,12 +276,12 @@ class PhanQuyenController extends Controller {
                 data: newChucNang
             });
         } catch (error) {
-            console.error('Lỗi khi tạo chức năng mới:', error);
-            res.status(500).json({
-                status: false,
-                message: 'Đã có lỗi xảy ra khi tạo chức năng mới',
-                error: error.message
-            });
+            return this.handleInternalError(
+                res,
+                error,
+                'Đã có lỗi xảy ra khi tạo chức năng mới',
+                'Lỗi khi tạo chức năng mới:'
+            );
         }
     }
 
@@ -301,12 +310,12 @@ class PhanQuyenController extends Controller {
                 data: chucNang
             });
         } catch (error) {
-            console.error('Lỗi khi cập nhật chức năng:', error);
-            res.status(500).json({
-                status: false,
-                message: 'Đã có lỗi xảy ra khi cập nhật chức năng',
-                error: error.message
-            });
+            return this.handleInternalError(
+                res,
+                error,
+                'Đã có lỗi xảy ra khi cập nhật chức năng',
+                'Lỗi khi cập nhật chức năng:'
+            );
         }
     }
 
@@ -336,12 +345,12 @@ class PhanQuyenController extends Controller {
                 message: 'Xóa chức năng thành công'
             });
         } catch (error) {
-            console.error('Lỗi khi xóa chức năng:', error);
-            res.status(500).json({
-                status: false,
-                message: 'Đã có lỗi xảy ra khi xóa chức năng',
-                error: error.message
-            });
+            return this.handleInternalError(
+                res,
+                error,
+                'Đã có lỗi xảy ra khi xóa chức năng',
+                'Lỗi khi xóa chức năng:'
+            );
         }
     }
 }

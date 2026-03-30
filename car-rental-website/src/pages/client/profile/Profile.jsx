@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 
 // Sử dụng ảnh mặc định thay vì placeholder.com
 const DEFAULT_AVATAR = 'https://img.freepik.com/premium-vector/man-avatar-profile-picture-isolated-background-avatar-profile-picture-man_1293239-4866.jpg';
+const BACKEND_ORIGIN = import.meta.env.VITE_BACKEND_ORIGIN || 'http://localhost:5000';
 
 // Components cho từng tab
 const ProfileUpdate = ({ user, onProfileDataChange }) => {
@@ -131,26 +132,16 @@ const DocumentUpload = ({ user, onProfileDataChange }) => {
             return path;
         }
         
-        // Thử các cách khác nhau để tạo URL
-        // 1. Sử dụng domain từ API
-        const apiBaseUrl = 'http://localhost:5000';
-        const directUrl = `${apiBaseUrl}${path}`;
-        
-        console.log("Đường dẫn gốc:", path);
-        console.log("URL trực tiếp:", directUrl);
-        
-        return directUrl;
+        return `${BACKEND_ORIGIN}${path}`;
     };
 
     useEffect(() => {
         if (user) {
             // Nếu có ảnh căn cước hoặc bằng lái từ user, chuyển đổi URL để hiển thị
             if (user.anhCanCuoc) {
-                console.log("Ảnh căn cước từ server:", user.anhCanCuoc);
                 setCanCuocPreview(getImageUrl(user.anhCanCuoc));
             }
             if (user.anhBangLaiXe) {
-                console.log("Ảnh bằng lái từ server:", user.anhBangLaiXe);
                 setBangLaiPreview(getImageUrl(user.anhBangLaiXe));
             }
             setCanCuocNumber(user.canCuocCongDan || '');
