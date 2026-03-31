@@ -6,15 +6,15 @@ on:
       - cap-nhat-moi-nhat
     paths:
       - "car-rental-website/**"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
       - ".github/workflows/website-cicd.yml"
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: car-rental-website
 
     steps:
       - name: Checkout
@@ -30,7 +30,7 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-          cache-dependency-path: car-rental-website/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -38,4 +38,4 @@ jobs:
       - name: Build website
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
-        run: pnpm build
+        run: pnpm --filter ./car-rental-website run build

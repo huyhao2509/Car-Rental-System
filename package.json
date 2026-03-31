@@ -1,15 +1,20 @@
 {
   "name": "car-rental-system",
   "version": "1.0.0",
-  "description": "��#\u0000 \u0000C\u0000a\u0000r\u0000 \u0000R\u0000e\u0000n\u0000t\u0000a\u0000l\u0000 \u0000S\u0000y\u0000s\u0000t\u0000e\u0000m\u0000\r\u0000 \u0000",
+  "private": true,
+  "description": "Car Rental System monorepo",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "install:all": "pnpm install -r",
+    "dev": "pnpm --parallel --filter ./car-rental-backend --filter ./car-rental-website run dev",
+    "dev:backend": "pnpm --filter ./car-rental-backend run dev",
+    "dev:website": "pnpm --filter ./car-rental-website run dev",
+    "start:backend": "pnpm --filter ./car-rental-backend run start:prod",
+    "build:website": "pnpm --filter ./car-rental-website run build",
+    "test": "echo \"No root test configured\" && exit 0"
   },
+  "packageManager": "pnpm@9",
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "axios": "^1.9.0"
-  }
+  "license": "ISC"
 }
