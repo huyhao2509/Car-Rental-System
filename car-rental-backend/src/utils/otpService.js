@@ -1,5 +1,5 @@
-import nodemailer from "nodemailer";
-import {redisClient} from "../config/connectRedis";
+const nodemailer = require("nodemailer");
+const { redisClient } = require("../config/connectRedis");
 
 /**
  * Lưu trữ OTP tạm thời trong bộ nhớ
@@ -66,7 +66,7 @@ const verifyOTP = (email, otp) => {
 };
 
 // Lưu OTP vào redis với thời gian hết hạn (5 phút)
-export const saveOTP = async (email, otp) => {
+const saveOTP = async (email, otp) => {
     try {
         await redisClient.setExAsync(`${email}_otp`, otp, 300);
         return true;
@@ -77,7 +77,7 @@ export const saveOTP = async (email, otp) => {
 };
 
 // Gửi OTP qua email
-export const sendOTPEmail = async (email, otp) => {
+const sendOTPEmail = async (email, otp) => {
     try {
         // Cấu hình nodemailer
         const transporter = nodemailer.createTransport({
@@ -101,7 +101,7 @@ export const sendOTPEmail = async (email, otp) => {
 };
 
 // Tạo và gửi OTP
-export const generateAndSendOTP = async (email) => {
+const generateAndSendOTP = async (email) => {
     try {
         const otp = generateOTP();
         // Lưu OTP trước khi gửi email
@@ -124,5 +124,8 @@ export const generateAndSendOTP = async (email) => {
 module.exports = {
     generateOTP,
     storeOTP,
-    verifyOTP
+    verifyOTP,
+    saveOTP,
+    sendOTPEmail,
+    generateAndSendOTP
 };

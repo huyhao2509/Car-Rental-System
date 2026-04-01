@@ -9,6 +9,7 @@
     "dev": "pnpm --parallel --filter ./car-rental-backend --filter ./car-rental-website run dev",
     "dev:backend": "pnpm --filter ./car-rental-backend run dev",
     "dev:website": "pnpm --filter ./car-rental-website run dev",
+    "start:prod": "pnpm --filter ./car-rental-backend run start:prod",
     "start:backend": "pnpm --filter ./car-rental-backend run start:prod",
     "build:website": "pnpm --filter ./car-rental-website run build",
     "test": "echo \"No root test configured\" && exit 0"
@@ -16,5 +17,10 @@
   "packageManager": "pnpm@9",
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "pnpm": {
+    "overrides": {
+      "@pinata/sdk>axios": "^0.30.3"
+    }
+  }
 }

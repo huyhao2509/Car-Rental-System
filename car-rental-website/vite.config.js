@@ -15,6 +15,38 @@ export default defineConfig({
             '@': path.resolve(__dirname, './src')
         }
     },
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (!id.includes('node_modules')) return undefined;
+
+                    const chunkGroups = [
+                        { name: 'vendor-react', packages: ['react', 'scheduler', 'prop-types'] },
+                        { name: 'vendor-react-dom', packages: ['react-dom'] },
+                        { name: 'vendor-router', packages: ['react-router', 'react-router-dom'] },
+                        { name: 'vendor-charts', packages: ['recharts', 'd3-'] },
+                        { name: 'vendor-ui', packages: ['lucide-react', 'react-icons', 'react-toastify', 'aos', 'flatpickr'] },
+                        { name: 'vendor-utils', packages: ['axios', 'lodash', 'react-hook-form'] }
+                    ];
+
+                    for (const group of chunkGroups) {
+                        const matched = group.packages.some((pkg) =>
+                            id.includes(`/node_modules/${pkg}/`) ||
+                            id.includes(`/node_modules/.pnpm/${pkg}@`) ||
+                            id.includes(`/node_modules/.pnpm/${pkg.replace('/', '+')}@`)
+                        );
+
+                        if (matched) {
+                            return group.name;
+                        }
+                    }
+
+                    return undefined;
+                }
+            }
+        }
+    },
     server: {
         proxy: {
             '/api': {

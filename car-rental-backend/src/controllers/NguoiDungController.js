@@ -128,8 +128,31 @@ class NguoiDungController extends Controller {
     async checkLogin(req, res) {
         try {
             const { token } = req.body;
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            if (!token) {
+                return res.status(400).json({
+                    status: false,
+                    message: 'Thiếu token đăng nhập'
+                });
+            }
+
+            let decoded;
+            try {
+                decoded = jwt.verify(token, process.env.JWT_SECRET);
+            } catch (error) {
+                return res.status(401).json({
+                    status: false,
+                    message: 'Token không hợp lệ hoặc đã hết hạn'
+                });
+            }
+
             const nguoiDung = await NguoiDung.findOne({ where: { id: decoded.id }, include: ['ChucVu'] });
+            if (!nguoiDung) {
+                return res.status(404).json({
+                    status: false,
+                    message: 'Không tìm thấy người dùng'
+                });
+            }
+
             const { password: _, ...nguoiDungWithoutPassword } = nguoiDung.toJSON();    
             return res.status(200).json({
                 status: true,
