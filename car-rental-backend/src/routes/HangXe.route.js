@@ -16,6 +16,10 @@ router.get('/data', checkPermission(6), HangXeController.getData.bind(HangXeCont
 router.post('/create', checkPermission(7), HangXeController.create.bind(HangXeController));
 router.post('/update', checkPermission(8), HangXeController.update.bind(HangXeController));
 router.delete('/delete/:id', checkPermission(9), HangXeController.delete.bind(HangXeController));
-router.get('/change-status/:id', checkPermission(10), HangXeController.changeStatus.bind(HangXeController));
+router.get(
+    '/change-status/:id',
+    checkPermission(10),
+    HangXeController.changeStatus.bind(HangXeController)
+);
 
 module.exports = router;

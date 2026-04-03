@@ -35,11 +35,11 @@ const PasswordLoginForm = ({ onSwitchToOTP }) => {
         try {
             setLoading(true);
             const res = await login(formData.email, formData.password);
-            if (res.data.status) {
-                toast.success(res.data.message);
+            if (res.status) {
+                toast.success(res.message);
                 navigate('/');
             } else {
-                setError(res.data.message || 'Đăng nhập không thành công');
+                setError(res.message || 'Đăng nhập không thành công');
             }
         } catch (error) {
             setError(error.message || 'Email hoặc mật khẩu không chính xác');

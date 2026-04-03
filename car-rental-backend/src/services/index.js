@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const bookingCreateService = require('./BookingCreateService');
 const bookingQueryService = require('./BookingQueryService');
@@ -6,8 +6,8 @@ const bookingUpdateService = require('./BookingUpdateService');
 const bookingAdminService = require('./BookingAdminService');
 
 module.exports = {
-    BookingCreateService,
-    BookingQueryService,
-    BookingUpdateService,
-    BookingAdminService
+    BookingCreateService: bookingCreateService,
+    BookingQueryService: bookingQueryService,
+    BookingUpdateService: bookingUpdateService,
+    BookingAdminService: bookingAdminService,
 };

@@ -1,29 +1,7 @@
 const Controller = require('./Controller');
 const { Xe, HangXe, LoaiXe, Sequelize } = require('../models');
 const { Op } = Sequelize;
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const PinataService = require('../services/PinataService');
-
-// Tạo thư mục uploads nếu chưa có
-const uploadDir = path.join(__dirname, '../../uploads/car_images');
-if (!fs.existsSync(uploadDir)){
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Cấu hình multer
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, uploadDir);
-    },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
-    }
-});
-
-const upload = multer({ storage: storage });
 
 class XeRouterController extends Controller {
     constructor() {
@@ -35,7 +13,7 @@ class XeRouterController extends Controller {
         if (defaultMessage) {
             return res.status(500).json({
                 status: false,
-                message: defaultMessage
+                message: defaultMessage,
             });
         }
         return res.status(500).json({ error: error.message });
@@ -47,13 +25,13 @@ class XeRouterController extends Controller {
                 include: [
                     {
                         model: HangXe,
-                        attributes: ['tenHangXe']
+                        attributes: ['tenHangXe'],
                     },
                     {
                         model: LoaiXe,
-                        attributes: ['tenLoaiXe']
-                    }
-                ]
+                        attributes: ['tenLoaiXe'],
+                    },
+                ],
             });
             res.status(200).json({
                 data: xe,
@@ -66,7 +44,7 @@ class XeRouterController extends Controller {
     async create(req, res) {
         try {
             const { bienSoXe } = req.body;
-            
+
             if (!bienSoXe) {
                 return res.status(400).json({
                     status: false,
@@ -75,7 +53,7 @@ class XeRouterController extends Controller {
             }
 
             const xeExists = await this.model.findOne({
-                where: { bienSoXe: bienSoXe }
+                where: { bienSoXe: bienSoXe },
             });
 
             if (xeExists) {
@@ -107,25 +85,37 @@ class XeRouterController extends Controller {
                 ...req.body,
                 hinhAnh: hinhAnhUrl,
                 thoiGianTao: new Date(),
-                thoiGianSua: new Date()
+                thoiGianSua: new Date(),
             };
 
             // Chuyển đổi các trường số
-            ['idHangXe', 'idLoaiXe', 'namSanXuat', 'sucChua', 'giaTheoNgay', 'giaTheoGio', 'trangThai'].forEach(field => {
+            [
+                'idHangXe',
+                'idLoaiXe',
+                'namSanXuat',
+                'sucChua',
+                'giaTheoNgay',
+                'giaTheoGio',
+                'trangThai',
+            ].forEach((field) => {
                 if (xeData[field]) {
                     xeData[field] = Number(xeData[field]);
                 }
             });
 
             const xe = await this.model.create(xeData);
-            
+
             res.status(200).json({
                 status: true,
                 message: 'Tạo mới thành công',
-                data: xe
+                data: xe,
             });
         } catch (error) {
-            return this.handleInternalError(res, error, error.message || 'Có lỗi xảy ra khi tạo xe');
+            return this.handleInternalError(
+                res,
+                error,
+                error.message || 'Có lỗi xảy ra khi tạo xe'
+            );
         }
     }
 
@@ -136,21 +126,21 @@ class XeRouterController extends Controller {
             if (!id || !bienSoXe) {
                 return res.status(400).json({
                     status: false,
-                    message: 'ID và biển số xe không được để trống'
+                    message: 'ID và biển số xe không được để trống',
                 });
             }
 
             const xeExists = await this.model.findOne({
-                where: { 
+                where: {
                     bienSoXe: bienSoXe,
-                    id: { [Op.ne]: id }
-                }
+                    id: { [Op.ne]: id },
+                },
             });
 
             if (xeExists) {
                 return res.status(400).json({
                     status: false,
-                    message: 'Biển số xe đã tồn tại trong hệ thống'
+                    message: 'Biển số xe đã tồn tại trong hệ thống',
                 });
             }
 
@@ -158,7 +148,7 @@ class XeRouterController extends Controller {
             if (!xeToUpdate) {
                 return res.status(404).json({
                     status: false,
-                    message: 'Không tìm thấy xe'
+                    message: 'Không tìm thấy xe',
                 });
             }
 
@@ -183,18 +173,26 @@ class XeRouterController extends Controller {
             const updateData = {
                 ...req.body,
                 hinhAnh: hinhAnhUrl,
-                thoiGianSua: new Date()
+                thoiGianSua: new Date(),
             };
 
             // Chuyển đổi các trường số
-            ['idHangXe', 'idLoaiXe', 'namSanXuat', 'sucChua', 'giaTheoNgay', 'giaTheoGio', 'trangThai'].forEach(field => {
+            [
+                'idHangXe',
+                'idLoaiXe',
+                'namSanXuat',
+                'sucChua',
+                'giaTheoNgay',
+                'giaTheoGio',
+                'trangThai',
+            ].forEach((field) => {
                 if (updateData[field]) {
                     updateData[field] = Number(updateData[field]);
                 }
             });
 
             await this.model.update(updateData, {
-                where: { id: id }
+                where: { id: id },
             });
 
             const updatedXe = await this.model.findByPk(id);
@@ -202,10 +200,14 @@ class XeRouterController extends Controller {
             res.status(200).json({
                 status: true,
                 message: 'Cập nhật thành công',
-                data: updatedXe
+                data: updatedXe,
             });
         } catch (error) {
-            return this.handleInternalError(res, error, error.message || 'Có lỗi xảy ra khi cập nhật xe');
+            return this.handleInternalError(
+                res,
+                error,
+                error.message || 'Có lỗi xảy ra khi cập nhật xe'
+            );
         }
     }
 
@@ -227,13 +229,13 @@ class XeRouterController extends Controller {
                 include: [
                     {
                         model: HangXe,
-                        attributes: ['tenHangXe']
+                        attributes: ['tenHangXe'],
                     },
                     {
                         model: LoaiXe,
-                        attributes: ['tenLoaiXe']
-                    }
-                ]
+                        attributes: ['tenLoaiXe'],
+                    },
+                ],
             });
             res.status(200).json({
                 data: xe,

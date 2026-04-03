@@ -22,11 +22,7 @@ router.post(
     uploadDocuments,
     NguoiDungController.updateProfile.bind(NguoiDungController)
 );
-router.get(
-    '/profile',
-    verifyToken,
-    NguoiDungController.getProfile.bind(NguoiDungController)
-);
+router.get('/profile', verifyToken, NguoiDungController.getProfile.bind(NguoiDungController));
 
 router.post(
     '/profile/upload-avatar',

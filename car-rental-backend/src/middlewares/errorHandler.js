@@ -5,16 +5,16 @@ const ResponseUtil = require('../utils/ResponseUtil');
  * @param {Error} err - Error object
  * @param {Object} req - Request object
  * @param {Object} res - Response object
- * @param {Function} next - Next function
+ * @param {Function} _next - Next function
  */
-const globalErrorHandler = (err, req, res, next) => {
+const globalErrorHandler = (err, req, res, _next) => {
     // Log error for debugging
     console.error('Global Error Handler:', {
         message: err.message,
         stack: err.stack,
         url: req.url,
         method: req.method,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
     });
 
     // Default error
@@ -25,9 +25,9 @@ const globalErrorHandler = (err, req, res, next) => {
     if (err.name === 'SequelizeValidationError') {
         statusCode = 400;
         message = 'Validation Error';
-        const errors = err.errors.map(error => ({
+        const errors = err.errors.map((error) => ({
             field: error.path,
-            message: error.message
+            message: error.message,
         }));
         return ResponseUtil.validationError(res, errors);
     }
@@ -88,12 +88,12 @@ const asyncHandler = (fn) => {
 /**
  * Handle 404 errors
  */
-const notFoundHandler = (req, res, next) => {
+const notFoundHandler = (req, res, _next) => {
     return ResponseUtil.error(res, `Route ${req.originalUrl} not found`, 404);
 };
 
 module.exports = {
     globalErrorHandler,
     asyncHandler,
-    notFoundHandler
-}; 
+    notFoundHandler,
+};

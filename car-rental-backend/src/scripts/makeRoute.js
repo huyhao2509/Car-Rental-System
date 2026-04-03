@@ -18,14 +18,16 @@ const formatName = (name) => {
     }
     // Xử lý kebab-case (VD: nguoi-dung)
     if (name.includes('-')) {
-        return name.split('-')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        return name
+            .split('-')
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
             .join('');
     }
     // Xử lý snake_case (VD: nguoi_dung)
     if (name.includes('_')) {
-        return name.split('_')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        return name
+            .split('_')
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
             .join('');
     }
     // Xử lý camelCase (VD: nguoiDung)
@@ -36,7 +38,10 @@ const formatName = (name) => {
 const formattedName = formatName(routeName);
 const fileName = formattedName; // Giữ nguyên tên file theo PascalCase
 const controllerName = `${formattedName}Controller`;
-const permissionPrefix = formattedName.toUpperCase().replace(/([A-Z])/g, '_$1').slice(1); // Chuyển PascalCase thành SNAKE_CASE
+const permissionPrefix = formattedName
+    .toUpperCase()
+    .replace(/([A-Z])/g, '_$1')
+    .slice(1); // Chuyển PascalCase thành SNAKE_CASE
 
 // Template cho route mới
 const routeTemplate = `const express = require('express');
@@ -82,4 +87,4 @@ try {
 } catch (error) {
     console.error('Có lỗi khi tạo route:', error.message);
     process.exit(1);
-} 
+}

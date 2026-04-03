@@ -1,4 +1,3 @@
-const express = require('express');
 const nguoiDungRouter = require('./NguoiDung.route');
 const hangXeRouter = require('./HangXe.route');
 const loaiXeRouter = require('./LoaiXe.route');
@@ -19,7 +18,6 @@ const initRoutes = (app) => {
     app.use('/api/admin/don-hang', DonHangRouter);
     app.use('/api/admin/khuyen-mai', KhuyenMaiRouter);
 
-
     app.use('/api/nguoi-dung', nguoiDungRouter);
     app.use('/api/client/xe', XeRouter);
     app.use('/api/client/don-hang', DonHangRouter);
@@ -31,14 +29,14 @@ const initRoutes = (app) => {
     app.get('/', (req, res) => {
         res.json({
             success: true,
-            message: 'Car Rental API is running'
+            message: 'Car Rental API is running',
         });
     });
 
     app.use((req, res) => {
         res.status(404).json({
             success: false,
-            message: 'Không tìm thấy API này'
+            message: 'Không tìm thấy API này',
         });
     });
 };

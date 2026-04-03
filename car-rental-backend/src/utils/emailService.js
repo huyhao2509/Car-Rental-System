@@ -1,12 +1,19 @@
 const nodemailer = require('nodemailer');
 
+const EMAIL_USER = process.env.EMAIL_USER;
+const EMAIL_PASS = process.env.EMAIL_PASS;
+
+if (!EMAIL_USER || !EMAIL_PASS) {
+    throw new Error('Missing EMAIL_USER or EMAIL_PASS environment variable');
+}
+
 // Cấu hình transporter cho nodemailer
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: process.env.EMAIL_USER || 'your-email@gmail.com', // Email của hệ thống
-        pass: process.env.EMAIL_PASS || 'your-app-password' // Mật khẩu ứng dụng (không phải mật khẩu Gmail)
-    }
+        user: EMAIL_USER,
+        pass: EMAIL_PASS,
+    },
 });
 
 /**
@@ -17,7 +24,7 @@ const transporter = nodemailer.createTransport({
  */
 const sendOTPEmail = async (to, otp) => {
     const mailOptions = {
-        from: process.env.EMAIL_USER || 'your-email@gmail.com',
+        from: EMAIL_USER,
         to,
         subject: 'Car Rental - Mã xác thực OTP',
         html: `
@@ -32,7 +39,7 @@ const sendOTPEmail = async (to, otp) => {
                     © ${new Date().getFullYear()} Car Rental System. Tất cả các quyền đã được bảo lưu.
                 </p>
             </div>
-        `
+        `,
     };
 
     try {
@@ -52,7 +59,7 @@ const sendOTPEmail = async (to, otp) => {
  */
 const sendPasswordResetEmail = async (to, newPassword) => {
     const mailOptions = {
-        from: process.env.EMAIL_USER || 'your-email@gmail.com',
+        from: EMAIL_USER,
         to,
         subject: 'Car Rental - Mật khẩu mới của bạn',
         html: `
@@ -68,7 +75,7 @@ const sendPasswordResetEmail = async (to, newPassword) => {
                     © ${new Date().getFullYear()} Car Rental System. Tất cả các quyền đã được bảo lưu.
                 </p>
             </div>
-        `
+        `,
     };
 
     try {
@@ -82,5 +89,5 @@ const sendPasswordResetEmail = async (to, newPassword) => {
 
 module.exports = {
     sendOTPEmail,
-    sendPasswordResetEmail
+    sendPasswordResetEmail,
 };

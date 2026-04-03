@@ -16,6 +16,10 @@ router.get('/get-all', checkPermission(1), LoaiXeController.getAll.bind(LoaiXeCo
 router.post('/create', checkPermission(2), LoaiXeController.create.bind(LoaiXeController));
 router.post('/update', checkPermission(3), LoaiXeController.update.bind(LoaiXeController));
 router.delete('/delete/:id', checkPermission(4), LoaiXeController.delete.bind(LoaiXeController));
-router.get('/change-status/:id', checkPermission(5), LoaiXeController.changeStatus.bind(LoaiXeController));
+router.get(
+    '/change-status/:id',
+    checkPermission(5),
+    LoaiXeController.changeStatus.bind(LoaiXeController)
+);
 
 module.exports = router;

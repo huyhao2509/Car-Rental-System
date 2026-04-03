@@ -29,10 +29,10 @@ const storage = multer.diskStorage({
         }
     },
     filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
         const ext = path.extname(file.originalname);
         cb(null, file.fieldname + '-' + uniqueSuffix + ext);
-    }
+    },
 });
 
 const fileFilter = (req, file, cb) => {
@@ -43,18 +43,18 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
-const upload = multer({ 
+const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
     limits: {
-        fileSize: 20 * 1024 * 1024 // giới hạn 20MB
-    }
+        fileSize: 20 * 1024 * 1024, // giới hạn 20MB
+    },
 });
 
 module.exports = {
     uploadAvatar: upload.single('anhDaiDien'),
     uploadDocuments: upload.fields([
         { name: 'anhCanCuoc', maxCount: 1 },
-        { name: 'anhBangLaiXe', maxCount: 1 }
-    ])
-}; 
+        { name: 'anhBangLaiXe', maxCount: 1 },
+    ]),
+};

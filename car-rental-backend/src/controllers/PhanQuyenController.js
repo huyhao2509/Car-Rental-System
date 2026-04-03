@@ -1,6 +1,5 @@
 const Controller = require('./Controller');
 const { ChucVu, ChucNang, ChiTietPhanQuyen, NguoiDung } = require('../models');
-const { Op } = require('sequelize');
 
 class PhanQuyenController extends Controller {
     constructor() {
@@ -12,14 +11,14 @@ class PhanQuyenController extends Controller {
         return res.status(500).json({
             status: false,
             message,
-            error: error.message
+            error: error.message,
         });
     }
 
     async getAll(req, res) {
         try {
             const phanQuyens = await this.model.findAll({
-                order: [['id', 'ASC']]
+                order: [['id', 'ASC']],
             });
             res.json({
                 status: true,
@@ -34,7 +33,6 @@ class PhanQuyenController extends Controller {
             );
         }
     }
-
 
     async create(req, res) {
         const { tenChucVu, trangThai } = req.body;
@@ -84,9 +82,7 @@ class PhanQuyenController extends Controller {
     async getAllChucNang(req, res) {
         try {
             const chucNangs = await ChucNang.findAll({
-                order: [
-                    ['id', 'ASC'],
-                ],
+                order: [['id', 'ASC']],
             });
             res.json({
                 status: true,
@@ -119,41 +115,41 @@ class PhanQuyenController extends Controller {
     async getPermissionsByRole(req, res) {
         try {
             const { idChucVu } = req.params;
-            
+
             // Kiểm tra chức vụ có tồn tại không
             const chucVu = await ChucVu.findByPk(idChucVu);
             if (!chucVu) {
                 return res.status(404).json({
                     status: false,
-                    message: 'Không tìm thấy chức vụ'
+                    message: 'Không tìm thấy chức vụ',
                 });
             }
 
             // Lấy tất cả các chức năng trong hệ thống
             const allChucNangs = await ChucNang.findAll({
-                order: [['id', 'ASC']]
+                order: [['id', 'ASC']],
             });
 
             // Lấy các quyền đã được cấp cho chức vụ này
             const assignedPermissions = await ChiTietPhanQuyen.findAll({
-                where: { idChucVu }
+                where: { idChucVu },
             });
 
             // Tạo mảng ID của các chức năng đã được cấp
-            const assignedPermissionIds = assignedPermissions.map(p => p.idChucNang);
+            const assignedPermissionIds = assignedPermissions.map((p) => p.idChucNang);
 
             // Tạo danh sách kết quả với trạng thái đã được cấp
-            const result = allChucNangs.map(chucNang => ({
+            const result = allChucNangs.map((chucNang) => ({
                 id: chucNang.id,
                 tenChucNang: chucNang.tenChucNang,
                 trangThai: chucNang.trangThai,
-                assigned: assignedPermissionIds.includes(chucNang.id)
+                assigned: assignedPermissionIds.includes(chucNang.id),
             }));
 
             res.json({
                 status: true,
                 data: result,
-                role: chucVu
+                role: chucVu,
             });
         } catch (error) {
             return this.handleInternalError(
@@ -174,30 +170,30 @@ class PhanQuyenController extends Controller {
             if (!chucVu) {
                 return res.status(404).json({
                     status: false,
-                    message: 'Không tìm thấy chức vụ'
+                    message: 'Không tìm thấy chức vụ',
                 });
             }
 
             await ChiTietPhanQuyen.destroy({
-                where: { idChucVu }
+                where: { idChucVu },
             });
 
             // Nếu có quyền mới được chọn
             if (permissions && permissions.length > 0) {
                 // Tạo bản ghi mới cho từng quyền được chọn
                 const now = new Date();
-                const permissionRecords = permissions.map(idChucNang => ({
+                const permissionRecords = permissions.map((idChucNang) => ({
                     idChucVu,
                     idChucNang,
                     thoiGianTao: now,
-                    thoiGianSua: now
+                    thoiGianSua: now,
                 }));
                 await ChiTietPhanQuyen.bulkCreate(permissionRecords);
             }
 
             res.json({
                 status: true,
-                message: 'Cập nhật phân quyền thành công'
+                message: 'Cập nhật phân quyền thành công',
             });
         } catch (error) {
             return this.handleInternalError(
@@ -217,36 +213,40 @@ class PhanQuyenController extends Controller {
 
             // Giả sử NguoiDung có quan hệ với ChucVu và bạn có thể truy cập idChucVu
             const user = await NguoiDung.findByPk(idNguoiDung, {
-                attributes: ['id', 'hoTen', 'idChucVu']
+                attributes: ['id', 'hoTen', 'idChucVu'],
             });
 
             if (!user) {
                 return res.status(404).json({
                     status: false,
-                    message: 'Không tìm thấy người dùng'
+                    message: 'Không tìm thấy người dùng',
                 });
             }
 
             // Lấy các quyền của chức vụ người dùng
             const userPermissions = await ChiTietPhanQuyen.findAll({
                 where: { idChucVu: user.idChucVu },
-                include: [{
-                    model: ChucNang,
-                    attributes: ['tenChucNang', 'trangThai'],
-                    where: { trangThai: 1 } // Chỉ lấy các chức năng đang hoạt động
-                }]
+                include: [
+                    {
+                        model: ChucNang,
+                        attributes: ['tenChucNang', 'trangThai'],
+                        where: { trangThai: 1 }, // Chỉ lấy các chức năng đang hoạt động
+                    },
+                ],
             });
 
             // Lấy danh sách id chức năng của người dùng
-            const permissionIds = userPermissions.map(p => p.idChucNang);
+            const permissionIds = userPermissions.map((p) => p.idChucNang);
 
             // Kiểm tra xem người dùng có tất cả quyền cần thiết hay không
-            const hasAllRequiredPermissions = required.every(permId => permissionIds.includes(permId));
+            const hasAllRequiredPermissions = required.every((permId) =>
+                permissionIds.includes(permId)
+            );
 
             res.json({
                 status: true,
                 hasPermission: hasAllRequiredPermissions,
-                userPermissions: permissionIds
+                userPermissions: permissionIds,
             });
         } catch (error) {
             return this.handleInternalError(
@@ -262,18 +262,18 @@ class PhanQuyenController extends Controller {
     async createChucNang(req, res) {
         try {
             const { tenChucNang, trangThai } = req.body;
-            
+
             const newChucNang = await ChucNang.create({
                 tenChucNang,
                 trangThai,
                 thoiGianTao: new Date(),
-                thoiGianSua: new Date()
+                thoiGianSua: new Date(),
             });
-            
+
             res.json({
                 status: true,
                 message: 'Tạo chức năng thành công',
-                data: newChucNang
+                data: newChucNang,
             });
         } catch (error) {
             return this.handleInternalError(
@@ -289,25 +289,25 @@ class PhanQuyenController extends Controller {
     async updateChucNang(req, res) {
         try {
             const { id, tenChucNang, trangThai } = req.body;
-            
+
             const chucNang = await ChucNang.findByPk(id);
             if (!chucNang) {
                 return res.status(404).json({
                     status: false,
-                    message: 'Không tìm thấy chức năng'
+                    message: 'Không tìm thấy chức năng',
                 });
             }
-            
+
             await chucNang.update({
                 tenChucNang,
                 trangThai,
-                thoiGianSua: new Date()
+                thoiGianSua: new Date(),
             });
-            
+
             res.json({
                 status: true,
                 message: 'Cập nhật chức năng thành công',
-                data: chucNang
+                data: chucNang,
             });
         } catch (error) {
             return this.handleInternalError(
@@ -323,26 +323,26 @@ class PhanQuyenController extends Controller {
     async deleteChucNang(req, res) {
         try {
             const { id } = req.params;
-            
+
             const chucNang = await ChucNang.findByPk(id);
             if (!chucNang) {
                 return res.status(404).json({
                     status: false,
-                    message: 'Không tìm thấy chức năng'
+                    message: 'Không tìm thấy chức năng',
                 });
             }
-            
+
             // Xóa các bản ghi liên quan trong ChiTietPhanQuyen
             await ChiTietPhanQuyen.destroy({
-                where: { idChucNang: id }
+                where: { idChucNang: id },
             });
-            
+
             // Xóa chức năng
             await chucNang.destroy();
-            
+
             res.json({
                 status: true,
-                message: 'Xóa chức năng thành công'
+                message: 'Xóa chức năng thành công',
             });
         } catch (error) {
             return this.handleInternalError(

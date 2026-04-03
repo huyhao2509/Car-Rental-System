@@ -1,15 +1,24 @@
-import jwt from 'jsonwebtoken';
+const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+const JWT_SECRET = process.env.JWT_SECRET;
 
-export const generateToken = (payload, expiresIn = '7d') => {
+if (!JWT_SECRET) {
+    throw new Error('Missing JWT_SECRET environment variable');
+}
+
+const generateToken = (payload, expiresIn = '7d') => {
     return jwt.sign(payload, JWT_SECRET, { expiresIn });
 };
 
-export const verifyToken = (token) => {
+const verifyToken = (token) => {
     try {
         return jwt.verify(token, JWT_SECRET);
-    } catch (err) {
-        throw new Error("Token không hợp lệ");
+    } catch {
+        throw new Error('Token không hợp lệ');
     }
+};
+
+module.exports = {
+    generateToken,
+    verifyToken,
 };

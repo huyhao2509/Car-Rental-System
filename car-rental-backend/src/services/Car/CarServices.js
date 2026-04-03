@@ -1,16 +1,16 @@
-import Xe from "../../models/Xe.js";
-import { v4 as uuidv4 } from 'uuid';
+const { Xe } = require('../../models');
+const { v4: uuidv4 } = require('uuid');
 
 class CarServices {
     constructor() {
         this.car = Xe;
     }
 
-    // Phương thức instance
     async createCar(carData) {
-        carData.maXe = uuidv4();
-        const car = await this.car.create(carData);
-        console.log(car);
+        const car = await this.car.create({
+            ...carData,
+            maXe: uuidv4(),
+        });
         return car;
     }
 
@@ -46,5 +46,4 @@ class CarServices {
     }
 }
 
-// Export một instance của CarServices
-export default new CarServices();
+module.exports = new CarServices();

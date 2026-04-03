@@ -1,5 +1,4 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Api from '@/utils/Api';
 
@@ -15,6 +14,10 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
+    const getErrorMessage = (error, fallbackMessage) => {
+        return error?.data?.message || error?.response?.data?.message || fallbackMessage;
+    };
+
     // Kiểm tra trạng thái đăng nhập khi ứng dụng khởi động
     useEffect(() => {
         const checkAuthStatus = async () => {
@@ -24,11 +27,8 @@ export const AuthProvider = ({ children }) => {
                 return;
             }
 
-            // Thiết lập token trong header
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
             try {
-                const res = await axios.post('/api/nguoi-dung/check-login', {
+                const res = await Api.post('/nguoi-dung/check-login', {
                     token
                 });
 
@@ -37,11 +37,9 @@ export const AuthProvider = ({ children }) => {
                     setIsAuthenticated(true);
                 } else {
                     localStorage.removeItem('token');
-                    delete axios.defaults.headers.common['Authorization'];
                 }
             } catch (error) {
                 localStorage.removeItem('token');
-                delete axios.defaults.headers.common['Authorization'];
             } finally {
                 setLoading(false);
             }
@@ -52,17 +50,17 @@ export const AuthProvider = ({ children }) => {
     // Đăng ký tài khoản mới
     const register = async (fullName, email, password, phone) => {
         try {
-            const res = await axios.post('/api/auth/register', {
-                fullName,
+            const res = await Api.post('/nguoi-dung/register', {
+                hoTen: fullName,
                 email,
                 password,
-                phone
+                soDienThoai: phone
             });
 
             return res.data;
         } catch (error) {
             throw new Error(
-                error.res?.data?.message || 'Đã xảy ra lỗi khi đăng ký'
+                getErrorMessage(error, 'Đã xảy ra lỗi khi đăng ký')
             );
         }
     };
@@ -70,31 +68,23 @@ export const AuthProvider = ({ children }) => {
     // Đăng nhập bằng email/password
     const login = async (email, password) => {
         try {
-            const res = await axios.post('/api/nguoi-dung/login', {
+            const res = await Api.post('/nguoi-dung/login', {
                 email,
                 password
             });
 
             if (res.data.status) {
                 localStorage.setItem('token', res.data.data.token);
-                axios.defaults.headers.common['Authorization'] = `Bearer ${res.token}`;
 
                 // Cập nhật trạng thái
                 setCurrentUser(res.data.data.user);
                 setIsAuthenticated(true);
-
-                if (res.data.status) {
-                    return {
-                        ...res.data,
-                        redirectReady: true
-                    };
-                }
             }
 
             return res.data;
         } catch (error) {
             throw new Error(
-                error.res?.data?.message || 'Email hoặc mật khẩu không chính xác'
+                getErrorMessage(error, 'Email hoặc mật khẩu không chính xác')
             );
         }
     };
@@ -106,7 +96,7 @@ export const AuthProvider = ({ children }) => {
             return res.data;
         } catch (error) {
             throw new Error(
-                error.data?.message || 'Không thể gửi OTP'
+                getErrorMessage(error, 'Không thể gửi OTP')
             );
         }
     };
@@ -123,9 +113,6 @@ export const AuthProvider = ({ children }) => {
                 // Lưu token vào localStorage
                 localStorage.setItem('token', res.data.data.token);
 
-                // Thiết lập token trong header
-                axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.data.token}`;
-
                 // Cập nhật trạng thái
                 setCurrentUser(res.data.data.user);
                 setIsAuthenticated(true);
@@ -134,7 +121,7 @@ export const AuthProvider = ({ children }) => {
             return res.data;
         } catch (error) {
             throw new Error(
-                error.response?.data?.message || 'OTP không hợp lệ'
+                getErrorMessage(error, 'OTP không hợp lệ')
             );
         }
     };
@@ -146,7 +133,7 @@ export const AuthProvider = ({ children }) => {
             return res.data;
         } catch (error) {
             throw new Error(
-                error.response?.data?.message || 'Không thể xử lý yêu cầu quên mật khẩu'
+                getErrorMessage(error, 'Không thể xử lý yêu cầu quên mật khẩu')
             );
         }
     };
@@ -162,7 +149,7 @@ export const AuthProvider = ({ children }) => {
             return res.data;
         } catch (error) {
             throw new Error(
-                error.response?.data?.message || 'Không thể đặt lại mật khẩu'
+                getErrorMessage(error, 'Không thể đặt lại mật khẩu')
             );
         }
     };
@@ -170,7 +157,6 @@ export const AuthProvider = ({ children }) => {
     // Đăng xuất
     const logout = () => {
         localStorage.removeItem('token');
-        delete axios.defaults.headers.common['Authorization'];
         setCurrentUser(null);
         setIsAuthenticated(false);
         navigate('/login');
@@ -205,7 +191,7 @@ export const AuthProvider = ({ children }) => {
             return res.data;
         } catch (error) {
             throw new Error(
-                error.res?.data?.message || 'Lỗi khi cập nhật thông tin'
+                getErrorMessage(error, 'Lỗi khi cập nhật thông tin')
             );
         }
     };
@@ -216,10 +202,12 @@ export const AuthProvider = ({ children }) => {
             const token = localStorage.getItem('token');
             if (!token) return false;
 
-            const res = await axios.post('/api/auth/me', { token });
+            const res = await Api.get('/nguoi-dung/profile', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
 
-            if (res.data.success) {
-                setCurrentUser(res.data.user);
+            if (res.data.status) {
+                setCurrentUser(res.data.data);
                 return true;
             }
 
@@ -231,7 +219,9 @@ export const AuthProvider = ({ children }) => {
     };
 
     const contextValue = {
+        user: currentUser,
         currentUser,
+        setCurrentUser,
         isAuthenticated,
         loading,
         register,

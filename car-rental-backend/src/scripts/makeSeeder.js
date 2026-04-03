@@ -52,4 +52,4 @@ module.exports = {
 const filePath = path.join(seedersDir, fileName);
 fs.writeFileSync(filePath, seederContent);
 
-console.log(`Seeder đã được tạo: ${filePath}`); 
+console.log(`Seeder đã được tạo: ${filePath}`);

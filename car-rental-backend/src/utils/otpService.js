@@ -1,5 +1,5 @@
-const nodemailer = require("nodemailer");
-const { redisClient } = require("../config/connectRedis");
+const nodemailer = require('nodemailer');
+const { redisClient } = require('../config/connectRedis');
 
 /**
  * Lưu trữ OTP tạm thời trong bộ nhớ
@@ -21,10 +21,11 @@ const generateOTP = () => {
  * @param {string} otp Mã OTP
  * @param {number} expiresIn Thời gian hết hạn (miligiây)
  */
-const storeOTP = (email, otp, expiresIn = 5 * 60 * 1000) => { // Mặc định 5 phút
+const storeOTP = (email, otp, expiresIn = 5 * 60 * 1000) => {
+    // Mặc định 5 phút
     const expiresAt = Date.now() + expiresIn;
     otpStore.set(email.toLowerCase(), { otp, expiresAt });
-    
+
     // Tự động xóa OTP sau khi hết hạn
     setTimeout(() => {
         if (otpStore.has(email.toLowerCase())) {
@@ -42,26 +43,26 @@ const storeOTP = (email, otp, expiresIn = 5 * 60 * 1000) => { // Mặc định 5
 const verifyOTP = (email, otp) => {
     const lowerEmail = email.toLowerCase();
     const otpData = otpStore.get(lowerEmail);
-    
+
     // Kiểm tra OTP tồn tại không
     if (!otpData) {
         return false;
     }
-    
+
     // Kiểm tra hết hạn
     if (Date.now() > otpData.expiresAt) {
         otpStore.delete(lowerEmail);
         return false;
     }
-    
+
     // Kiểm tra khớp OTP
     const isValid = otpData.otp === otp;
-    
+
     // Nếu OTP hợp lệ, xóa khỏi store
     if (isValid) {
         otpStore.delete(lowerEmail);
     }
-    
+
     return isValid;
 };
 
@@ -71,8 +72,8 @@ const saveOTP = async (email, otp) => {
         await redisClient.setExAsync(`${email}_otp`, otp, 300);
         return true;
     } catch (error) {
-        console.error("Error saving OTP:", error.message);
-        throw new Error("Failed to save OTP: " + error.message);
+        console.error('Error saving OTP:', error.message);
+        throw new Error('Failed to save OTP: ' + error.message);
     }
 };
 
@@ -81,7 +82,7 @@ const sendOTPEmail = async (email, otp) => {
     try {
         // Cấu hình nodemailer
         const transporter = nodemailer.createTransport({
-            service: "gmail",
+            service: 'gmail',
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS,
@@ -90,13 +91,13 @@ const sendOTPEmail = async (email, otp) => {
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: email,
-            subject: "Mã xác thực OTP cho Car Rental",
+            subject: 'Mã xác thực OTP cho Car Rental',
             text: `Mã OTP của bạn là: ${otp}. Mã này có hiệu lực trong 10 phút.`,
         };
         await transporter.sendMail(mailOptions);
     } catch (error) {
-        console.error("Error sending OTP email:", error.message);
-        throw new Error("Failed to send OTP email: " + error.message);
+        console.error('Error sending OTP email:', error.message);
+        throw new Error('Failed to send OTP email: ' + error.message);
     }
 };
 
@@ -108,16 +109,14 @@ const generateAndSendOTP = async (email) => {
         await saveOTP(email, otp);
         try {
             await sendOTPEmail(email, otp);
-        } catch (emailError) {
-            console.log(
-                "Gửi email thất bại nhưng OTP vẫn được lưu trong database."
-            );
+        } catch {
+            console.log('Gửi email thất bại nhưng OTP vẫn được lưu trong database.');
         }
         return otp;
     } catch (error) {
-        console.error("Error generating and sending OTP:", error.message);
-        console.error("Stack trace:", error.stack);
-        throw new Error("Failed to generate and send OTP: " + error.message);
+        console.error('Error generating and sending OTP:', error.message);
+        console.error('Stack trace:', error.stack);
+        throw new Error('Failed to generate and send OTP: ' + error.message);
     }
 };
 
@@ -127,5 +126,5 @@ module.exports = {
     verifyOTP,
     saveOTP,
     sendOTPEmail,
-    generateAndSendOTP
+    generateAndSendOTP,
 };

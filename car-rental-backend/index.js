@@ -1,11 +1,11 @@
-const express = require("express");
-const dotenv = require("dotenv");
-const cors = require("cors");
-const { connectDB } = require("./src/config/connectDB.js");
-const { connectRedis } = require("./src/config/connectRedis.js");
-const initRoutes = require("./src/routes/index.js");
-const { globalErrorHandler, notFoundHandler } = require("./src/middlewares/errorHandler.js");
-const { generalLimiter } = require("./src/middlewares/rateLimiter.js");
+const express = require('express');
+const dotenv = require('dotenv');
+const cors = require('cors');
+const { connectDB } = require('./src/config/connectDB.js');
+const { connectRedis } = require('./src/config/connectRedis.js');
+const initRoutes = require('./src/routes/index.js');
+const { globalErrorHandler, notFoundHandler } = require('./src/middlewares/errorHandler.js');
+const { generalLimiter } = require('./src/middlewares/rateLimiter.js');
 const path = require('path');
 
 dotenv.config();
@@ -24,7 +24,7 @@ const parseAllowedOrigins = () => {
     const configuredOrigins = [
         process.env.CLIENT_URL,
         process.env.FRONTEND_URL,
-        process.env.FRONTEND_URLS
+        process.env.FRONTEND_URLS,
     ]
         .filter(Boolean)
         .flatMap((value) => String(value).split(','))
@@ -32,11 +32,7 @@ const parseAllowedOrigins = () => {
         .filter(Boolean);
 
     return Array.from(
-        new Set([
-            ...configuredOrigins,
-            'http://localhost:5173',
-            'http://127.0.0.1:5173'
-        ])
+        new Set([...configuredOrigins, 'http://localhost:5173', 'http://127.0.0.1:5173'])
     );
 };
 
@@ -56,12 +52,12 @@ app.use(
 
             return callback(new Error('CORS policy: Origin is not allowed'));
         },
-        methods: ["POST", "GET", "PUT", "DELETE"],
-        credentials: true
+        methods: ['POST', 'GET', 'PUT', 'DELETE'],
+        credentials: true,
     })
 );
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 initRoutes(app);
 
@@ -80,7 +76,9 @@ const startServer = () => {
 
     server.on('error', (err) => {
         if (err.code === 'EADDRINUSE') {
-            console.error(`\nLỗi: Cổng ${port} đang được sử dụng. Vui lòng đóng ứng dụng khác đang dùng cổng này và thử lại.\n`);
+            console.error(
+                `\nLỗi: Cổng ${port} đang được sử dụng. Vui lòng đóng ứng dụng khác đang dùng cổng này và thử lại.\n`
+            );
             process.exit(1);
         } else {
             console.error('Lỗi khi khởi động server:', err);
@@ -89,5 +87,5 @@ const startServer = () => {
     });
 };
 
-console.log("--- KHỞI ĐỘNG SERVER ---");
+console.log('--- KHỞI ĐỘNG SERVER ---');
 startServer();

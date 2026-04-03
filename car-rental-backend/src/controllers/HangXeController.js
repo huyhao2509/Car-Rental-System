@@ -6,77 +6,67 @@ class HangXeController extends Controller {
         super(HangXe);
     }
 
+    _buildResponse(status, message) {
+        return { status, message };
+    }
+
+    _getRequestId(req) {
+        return req.params?.id || req.body?.id;
+    }
+
     async getData(req, res) {
         const data = await this.model.findAll();
-        res.json({
-            data: data
-        });
+        return res.json({ data });
     }
-    
+
     async delete(req, res) {
-        const hangXe = await this.model.findOne({ where: { id: req.body.id } });
-        if(hangXe) {
-            await hangXe.destroy();
-            res.json({
-                'status': true,
-                'message': 'Xóa thành công!'
-            });
-        } else {
-            res.json({
-                'status': false,
-                'message': 'Không tìm thấy hãng xe!'
-            });
+        const id = this._getRequestId(req);
+        const hangXe = await this.model.findOne({ where: { id } });
+
+        if (!hangXe) {
+            return res.json(this._buildResponse(false, 'Không tìm thấy hãng xe!'));
         }
+
+        await hangXe.destroy();
+        return res.json(this._buildResponse(true, 'Xóa thành công!'));
     }
 
     async update(req, res) {
-        const hangXe = await this.model.findOne({ where: { id: req.body.id } });
-        if(hangXe) {
-            await hangXe.update({ tenHangXe: req.body.tenHangXe });
-            res.json({
-                'status': true,
-                'message': 'Cập nhật thành công!'
-            });
-        } else {
-            res.json({
-                'status': false,
-                'message': 'Không tìm thấy hãng xe!'
-            });
+        const id = this._getRequestId(req);
+        const hangXe = await this.model.findOne({ where: { id } });
+
+        if (!hangXe) {
+            return res.json(this._buildResponse(false, 'Không tìm thấy hãng xe!'));
         }
+
+        await hangXe.update({ tenHangXe: req.body.tenHangXe });
+        return res.json(this._buildResponse(true, 'Cập nhật thành công!'));
     }
 
     async create(req, res) {
         const { tenHangXe } = req.body;
-        const hangXe = await this.model.findOne({ where: { tenHangXe } });
-        if(hangXe) {
-            res.json({
-                'status': false,
-                'message': 'Hãng xe đã tồn tại!'
-            });
-        } else {
-            await this.model.create({ tenHangXe });
-            res.json({
-                'status': true,
-                'message': 'Thêm hãng xe thành công!'
-            });
+        const normalizedName = String(tenHangXe || '').trim();
+        const hangXe = await this.model.findOne({ where: { tenHangXe: normalizedName } });
+
+        if (hangXe) {
+            return res.json(this._buildResponse(false, 'Hãng xe đã tồn tại!'));
         }
+
+        await this.model.create({ tenHangXe: normalizedName });
+        return res.json(this._buildResponse(true, 'Thêm hãng xe thành công!'));
     }
 
     async changeStatus(req, res) {
-        const hangXe = await this.model.findOne({ where: { id: req.params.id } });
-        if(hangXe) {
-            hangXe.trangThai = !hangXe.trangThai;
-            await hangXe.save();
-            res.json({
-                'status': true,
-                'message': 'Cập nhật trạng thái thành công!'
-            });
-        } else {
-            res.json({
-                'status': false,
-                'message': 'Không tìm thấy hãng xe!'
-            });
+        const id = this._getRequestId(req);
+        const hangXe = await this.model.findOne({ where: { id } });
+
+        if (!hangXe) {
+            return res.json(this._buildResponse(false, 'Không tìm thấy hãng xe!'));
         }
+
+        hangXe.trangThai = !hangXe.trangThai;
+        await hangXe.save();
+        return res.json(this._buildResponse(true, 'Cập nhật trạng thái thành công!'));
     }
 }
 

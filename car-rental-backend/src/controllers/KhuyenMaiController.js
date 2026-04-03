@@ -10,35 +10,35 @@ class KhuyenMaiController extends Controller {
         const khuyenMai = await KhuyenMai.findAll();
         res.status(200).json({
             status: true,
-            data: khuyenMai
+            data: khuyenMai,
         });
     }
 
     async themKhuyenMai(req, res) {
-        const khuyenMai = await KhuyenMai.create(req.body);
+        await KhuyenMai.create(req.body);
         res.status(200).json({
             status: true,
-            message: 'Thêm khuyến mãi thành công'
+            message: 'Thêm khuyến mãi thành công',
         });
     }
 
     async capNhatKhuyenMai(req, res) {
-        const khuyenMai = await KhuyenMai.update(req.body, {
-            where: { id: req.body.id }
+        await KhuyenMai.update(req.body, {
+            where: { id: req.body.id },
         });
         res.status(200).json({
             status: true,
-            message: 'Cập nhật khuyến mãi thành công'
+            message: 'Cập nhật khuyến mãi thành công',
         });
     }
 
     async xoaKhuyenMai(req, res) {
-        const khuyenMai = await KhuyenMai.destroy({
-            where: { id: req.params.id }
+        await KhuyenMai.destroy({
+            where: { id: req.params.id },
         });
         res.status(200).json({
             status: true,
-            message: 'Xóa khuyến mãi thành công'
+            message: 'Xóa khuyến mãi thành công',
         });
     }
 }

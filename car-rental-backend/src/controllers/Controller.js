@@ -19,7 +19,7 @@ class Controller {
         try {
             const { id } = req.params;
             const item = await this.model.findByPk(id);
-            
+
             if (!item) {
                 return ResponseUtil.error(res, 'Không tìm thấy dữ liệu', 404);
             }
@@ -35,7 +35,7 @@ class Controller {
             const newItem = await this.model.create({
                 ...req.body,
                 thoiGianTao: new Date(),
-                thoiGianSua: new Date()
+                thoiGianSua: new Date(),
             });
 
             return ResponseUtil.success(res, newItem, 'Tạo mới thành công');
@@ -55,7 +55,7 @@ class Controller {
 
             await item.update({
                 ...req.body,
-                thoiGianSua: new Date()
+                thoiGianSua: new Date(),
             });
 
             return ResponseUtil.success(res, item, 'Cập nhật thành công');
@@ -75,7 +75,7 @@ class Controller {
 
             await item.update({
                 trangThai: 0,
-                thoiGianSua: new Date()
+                thoiGianSua: new Date(),
             });
 
             return ResponseUtil.success(res, null, 'Xóa thành công');
@@ -86,16 +86,22 @@ class Controller {
 
     async getPagination(req, res) {
         try {
-            const { page = 1, limit = 10, search = '', sortBy = 'id', sortType = 'DESC' } = req.query;
+            const {
+                page = 1,
+                limit = 10,
+                search = '',
+                sortBy = 'id',
+                sortType = 'DESC',
+            } = req.query;
             const offset = (page - 1) * limit;
             const whereCondition = {};
             if (search) {
-                const searchableFields = Object.keys(this.model.rawAttributes).filter(
-                    field => ['STRING', 'TEXT'].includes(this.model.rawAttributes[field].type.key)
+                const searchableFields = Object.keys(this.model.rawAttributes).filter((field) =>
+                    ['STRING', 'TEXT'].includes(this.model.rawAttributes[field].type.key)
                 );
-                
-                whereCondition[Op.or] = searchableFields.map(field => ({
-                    [field]: { [Op.like]: `%${search}%` }
+
+                whereCondition[Op.or] = searchableFields.map((field) => ({
+                    [field]: { [Op.like]: `%${search}%` },
                 }));
             }
 
@@ -103,7 +109,7 @@ class Controller {
                 where: whereCondition,
                 offset: parseInt(offset),
                 limit: parseInt(limit),
-                order: [[sortBy, sortType]]
+                order: [[sortBy, sortType]],
             });
 
             return ResponseUtil.paginated(
@@ -112,7 +118,7 @@ class Controller {
                 {
                     page: parseInt(page),
                     limit: parseInt(limit),
-                    totalItems: count
+                    totalItems: count,
                 },
                 'Lấy dữ liệu thành công'
             );

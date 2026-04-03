@@ -11,7 +11,9 @@ if (!controllerName) {
 }
 
 const formattedName = controllerName.charAt(0).toUpperCase() + controllerName.slice(1);
-const controllerFileName = formattedName.includes('Controller') ? formattedName : `${formattedName}Controller`;
+const controllerFileName = formattedName.includes('Controller')
+    ? formattedName
+    : `${formattedName}Controller`;
 
 const controllerTemplate = `const Controller = require('./Controller');
 const { ${formattedName.replace('Controller', '')} } = require('../models');
@@ -47,4 +49,4 @@ try {
 } catch (error) {
     console.error('Có lỗi khi tạo controller:', error.message);
     process.exit(1);
-} 
+}

@@ -1,6 +1,5 @@
 // src/services/PinataService.js
 const pinataSDK = require('@pinata/sdk');
-const FormData = require('form-data');
 const { Readable } = require('stream');
 
 class PinataService {
@@ -17,20 +16,20 @@ class PinataService {
             const fileStream = Readable.from(fileBuffer);
             fileStream.path = fileName;
 
-            // Upload 
+            // Upload
             const response = await this.pinataClient.pinFileToIPFS(fileStream, {
                 pinataMetadata: {
                     name: fileName,
                     keyvalues: {
                         userId: userId,
-                        documentType: documentType
-                    }
-                }
+                        documentType: documentType,
+                    },
+                },
             });
 
             return {
                 ipfsHash: response.IpfsHash,
-                gatewayUrl: `https://gateway.pinata.cloud/ipfs/${response.IpfsHash}`
+                gatewayUrl: `https://gateway.pinata.cloud/ipfs/${response.IpfsHash}`,
             };
         } catch (error) {
             console.error('Lỗi upload file lên Pinata:', error);

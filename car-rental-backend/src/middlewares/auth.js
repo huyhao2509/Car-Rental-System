@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { NguoiDung, ChucVu, ChucNang, ChiTietPhanQuyen } = require('../models');
+const { NguoiDung, ChucNang, ChiTietPhanQuyen } = require('../models');
 
 /**
  * Middleware xác thực token JWT
@@ -10,29 +10,29 @@ const verifyToken = async (req, res, next) => {
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return res.status(401).json({
                 status: false,
-                message: 'Không tìm thấy token xác thực'
+                message: 'Không tìm thấy token xác thực',
             });
         }
 
         const token = authHeader.split(' ')[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        
-        const nguoiDung = await NguoiDung.findOne({ 
+
+        const nguoiDung = await NguoiDung.findOne({
             where: { id: decoded.id },
-            include: ['ChucVu']
+            include: ['ChucVu'],
         });
 
         if (!nguoiDung) {
             return res.status(401).json({
                 status: false,
-                message: 'Người dùng không tồn tại'
+                message: 'Người dùng không tồn tại',
             });
         }
 
         if (nguoiDung.trangThai !== 1) {
             return res.status(401).json({
                 status: false,
-                message: 'Tài khoản đã bị khóa'
+                message: 'Tài khoản đã bị khóa',
             });
         }
 
@@ -42,7 +42,7 @@ const verifyToken = async (req, res, next) => {
         return res.status(401).json({
             status: false,
             message: 'Token không hợp lệ hoặc đã hết hạn',
-            error: error.message
+            error: error.message,
         });
     }
 };
@@ -55,7 +55,7 @@ const checkPermission = (idChucNang) => {
     return async (req, res, next) => {
         try {
             const nguoiDung = req.user;
-            
+
             // Kiểm tra xem người dùng có phải là admin không (idChucVu = 1)
             if (nguoiDung.idChucVu === 1) {
                 return next();
@@ -65,14 +65,14 @@ const checkPermission = (idChucNang) => {
             const chucNang = await ChucNang.findOne({
                 where: {
                     id: idChucNang,
-                    trangThai: 1
-                }
+                    trangThai: 1,
+                },
             });
 
             if (!chucNang) {
                 return res.status(403).json({
                     status: false,
-                    message: 'Chức năng không tồn tại hoặc đã bị vô hiệu hóa'
+                    message: 'Chức năng không tồn tại hoặc đã bị vô hiệu hóa',
                 });
             }
 
@@ -80,14 +80,14 @@ const checkPermission = (idChucNang) => {
             const hasPermission = await ChiTietPhanQuyen.findOne({
                 where: {
                     idChucVu: nguoiDung.idChucVu,
-                    idChucNang: idChucNang
-                }
+                    idChucNang: idChucNang,
+                },
             });
 
             if (!hasPermission) {
                 return res.status(403).json({
                     status: false,
-                    message: 'Bạn không có quyền thực hiện chức năng này'
+                    message: 'Bạn không có quyền thực hiện chức năng này',
                 });
             }
 
@@ -96,7 +96,7 @@ const checkPermission = (idChucNang) => {
             return res.status(500).json({
                 status: false,
                 message: 'Lỗi khi kiểm tra quyền',
-                error: error.message
+                error: error.message,
             });
         }
     };
@@ -104,5 +104,5 @@ const checkPermission = (idChucNang) => {
 
 module.exports = {
     verifyToken,
-    checkPermission
-}; 
+    checkPermission,
+};

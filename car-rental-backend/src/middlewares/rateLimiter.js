@@ -5,11 +5,7 @@ const ResponseUtil = require('../utils/ResponseUtil');
  * Custom rate limit handler
  */
 const rateLimitHandler = (req, res) => {
-    return ResponseUtil.error(
-        res, 
-        'Quá nhiều requests từ IP này, vui lòng thử lại sau',
-        429
-    );
+    return ResponseUtil.error(res, 'Quá nhiều requests từ IP này, vui lòng thử lại sau', 429);
 };
 
 /**
@@ -20,11 +16,11 @@ const generalLimiter = rateLimit({
     max: 100, // limit each IP to 100 requests per windowMs
     message: {
         status: false,
-        message: 'Quá nhiều requests, vui lòng thử lại sau 15 phút'
+        message: 'Quá nhiều requests, vui lòng thử lại sau 15 phút',
     },
     handler: rateLimitHandler,
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-    legacyHeaders: false // Disable the `X-RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
 /**
@@ -35,10 +31,10 @@ const authLimiter = rateLimit({
     max: 5, // limit each IP to 5 requests per windowMs
     message: {
         status: false,
-        message: 'Quá nhiều lần đăng nhập thất bại, vui lòng thử lại sau 15 phút'
+        message: 'Quá nhiều lần đăng nhập thất bại, vui lòng thử lại sau 15 phút',
     },
     handler: rateLimitHandler,
-    skipSuccessfulRequests: true // Don't count successful requests
+    skipSuccessfulRequests: true, // Don't count successful requests
 });
 
 /**
@@ -49,9 +45,9 @@ const uploadLimiter = rateLimit({
     max: 10, // limit each IP to 10 uploads per minute
     message: {
         status: false,
-        message: 'Quá nhiều uploads, vui lòng thử lại sau 1 phút'
+        message: 'Quá nhiều uploads, vui lòng thử lại sau 1 phút',
     },
-    handler: rateLimitHandler
+    handler: rateLimitHandler,
 });
 
 /**
@@ -62,9 +58,9 @@ const otpLimiter = rateLimit({
     max: 3, // limit each IP to 3 OTP requests per minute
     message: {
         status: false,
-        message: 'Quá nhiều requests OTP, vui lòng thử lại sau 1 phút'
+        message: 'Quá nhiều requests OTP, vui lòng thử lại sau 1 phút',
     },
-    handler: rateLimitHandler
+    handler: rateLimitHandler,
 });
 
 /**
@@ -75,9 +71,9 @@ const searchLimiter = rateLimit({
     max: 30, // limit each IP to 30 searches per minute
     message: {
         status: false,
-        message: 'Quá nhiều tìm kiếm, vui lòng thử lại sau'
+        message: 'Quá nhiều tìm kiếm, vui lòng thử lại sau',
     },
-    handler: rateLimitHandler
+    handler: rateLimitHandler,
 });
 
 module.exports = {
@@ -85,5 +81,5 @@ module.exports = {
     authLimiter,
     uploadLimiter,
     otpLimiter,
-    searchLimiter
-}; 
+    searchLimiter,
+};

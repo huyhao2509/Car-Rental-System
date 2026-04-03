@@ -5,4 +5,4 @@ const router = express.Router();
 
 router.post('/ask', askQuestion);
 
-module.exports = router; 
+module.exports = router;

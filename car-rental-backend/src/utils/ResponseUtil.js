@@ -14,7 +14,7 @@ class ResponseUtil {
             status: true,
             message: message,
             data: data,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
         });
     }
 
@@ -29,7 +29,7 @@ class ResponseUtil {
         const response = {
             status: false,
             message: message,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
         };
 
         // Only include error details in development
@@ -50,7 +50,7 @@ class ResponseUtil {
             status: false,
             message: 'Validation Error',
             errors: errors,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
         });
     }
 
@@ -73,12 +73,12 @@ class ResponseUtil {
                     totalItems: pagination.totalItems,
                     totalPages: Math.ceil(pagination.totalItems / pagination.limit),
                     hasNext: pagination.page < Math.ceil(pagination.totalItems / pagination.limit),
-                    hasPrev: pagination.page > 1
-                }
+                    hasPrev: pagination.page > 1,
+                },
             },
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
         });
     }
 }
 
-module.exports = ResponseUtil; 
+module.exports = ResponseUtil;

@@ -44,3 +44,13 @@ services:
         sync: false
       - key: MB_SCHEDULER_ENABLED
         value: false
+      - key: MB_TRANSACTION_API_URL
+        sync: false
+      - key: MB_SCHEDULER_INTERVAL_MS
+        value: 30000
+      - key: MB_USERNAME
+        sync: false
+      - key: MB_PASSWORD
+        sync: false
+      - key: MB_ACCOUNT_NO
+        sync: false

@@ -7,6 +7,10 @@
     "dev": "nodemon --exec babel-node index.js",
     "start": "nodemon --exec babel-node index.js",
     "start:prod": "node index.js",
+    "lint": "eslint \"src/**/*.js\" index.js",
+    "lint:fix": "eslint \"src/**/*.js\" index.js --fix",
+    "format": "prettier --write \"{src,seeders}/**/*.js\" index.js",
+    "format:check": "prettier --check \"{src,seeders}/**/*.js\" index.js",
     "make:controller": "node src/scripts/makeController.js",
     "make:route": "node src/scripts/makeRoute.js",
     "make:seeder": "node src/scripts/makeSeeder.js",
@@ -50,6 +54,9 @@
     "@babel/plugin-transform-modules-commonjs": "^7.26.3",
     "@babel/preset-env": "^7.26.9",
     "babel-plugin-module-resolver": "^5.0.2",
-    "nodemon": "^3.1.9"
+    "eslint": "^9.23.0",
+    "eslint-config-prettier": "^10.1.1",
+    "nodemon": "^3.1.9",
+    "prettier": "^3.5.3"
   }
 }

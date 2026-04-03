@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 const DonHang = require('../models/DonHang');
 const DonHangXe = require('../models/DonHangXe');
 const Xe = require('../models/Xe');
@@ -13,7 +13,7 @@ class BookingQueryService {
         try {
             const danhSachDonHang = await DonHang.findAll({
                 where: {
-                    maNguoiDung
+                    maNguoiDung,
                 },
                 include: [
                     {
@@ -21,24 +21,32 @@ class BookingQueryService {
                         include: [
                             {
                                 model: Xe,
-                                attributes: ['maXe', 'tenXe', 'bienSo', 'hangXe', 'dongXe', 'hinhAnh', 'giaThue']
-                            }
-                        ]
+                                attributes: [
+                                    'maXe',
+                                    'tenXe',
+                                    'bienSo',
+                                    'hangXe',
+                                    'dongXe',
+                                    'hinhAnh',
+                                    'giaThue',
+                                ],
+                            },
+                        ],
                     },
                     {
                         model: KhuyenMai,
-                        attributes: ['maKhuyenMai', 'tenKhuyenMai', 'phanTramGiam']
-                    }
+                        attributes: ['maKhuyenMai', 'tenKhuyenMai', 'phanTramGiam'],
+                    },
                 ],
-                order: [['thoiGianTao', 'DESC']]
+                order: [['thoiGianTao', 'DESC']],
             });
-            
+
             return danhSachDonHang;
         } catch (error) {
             throw error;
         }
     }
-    
+
     // Lấy chi tiết đơn hàng theo ID
     async getBookingDetail(maDonHang, maNguoiDung, isAdmin) {
         try {
@@ -49,30 +57,39 @@ class BookingQueryService {
                         include: [
                             {
                                 model: Xe,
-                                attributes: ['maXe', 'tenXe', 'bienSo', 'hangXe', 'dongXe', 'hinhAnh', 'giaThue', 'moTa']
-                            }
-                        ]
+                                attributes: [
+                                    'maXe',
+                                    'tenXe',
+                                    'bienSo',
+                                    'hangXe',
+                                    'dongXe',
+                                    'hinhAnh',
+                                    'giaThue',
+                                    'moTa',
+                                ],
+                            },
+                        ],
                     },
                     {
                         model: NguoiDung,
-                        attributes: ['maNguoiDung', 'hoTen', 'email', 'soDienThoai']
+                        attributes: ['maNguoiDung', 'hoTen', 'email', 'soDienThoai'],
                     },
                     {
                         model: KhuyenMai,
-                        attributes: ['maKhuyenMai', 'tenKhuyenMai', 'phanTramGiam', 'giamToiDa']
-                    }
-                ]
+                        attributes: ['maKhuyenMai', 'tenKhuyenMai', 'phanTramGiam', 'giamToiDa'],
+                    },
+                ],
             });
-            
+
             if (!donHang) {
                 throw new ApiError(404, 'Không tìm thấy thông tin đơn hàng');
             }
-            
+
             // Kiểm tra quyền truy cập (chỉ người đặt hoặc admin có thể xem)
             if (donHang.maNguoiDung !== maNguoiDung && !isAdmin) {
                 throw new ApiError(403, 'Bạn không có quyền xem thông tin đơn hàng này');
             }
-            
+
             return donHang;
         } catch (error) {
             throw error;

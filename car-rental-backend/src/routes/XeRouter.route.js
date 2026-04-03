@@ -1,8 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const XeRouterController = require('../controllers/XeRouterController');
 const { verifyToken, checkPermission } = require('../middlewares/auth');
 
@@ -18,8 +16,8 @@ const upload = multer({
         }
     },
     limits: {
-        fileSize: 5 * 1024 * 1024 // Giới hạn 5MB
-    }
+        fileSize: 5 * 1024 * 1024, // Giới hạn 5MB
+    },
 });
 
 router.get('/get-all-client', XeRouterController.getAll.bind(XeRouterController));
@@ -30,9 +28,27 @@ router.use(verifyToken);
 
 // Route quản lý xe
 router.get('/get-all', checkPermission(11), XeRouterController.getAll.bind(XeRouterController));
-router.get('/get-detail/:id', checkPermission(11), XeRouterController.getDetail.bind(XeRouterController));
-router.post('/create', checkPermission(12), upload.single('hinhAnh'), XeRouterController.create.bind(XeRouterController));
-router.post('/update', checkPermission(13), upload.single('hinhAnh'), XeRouterController.update.bind(XeRouterController));
-router.delete('/delete/:id', checkPermission(14), XeRouterController.delete.bind(XeRouterController));
+router.get(
+    '/get-detail/:id',
+    checkPermission(11),
+    XeRouterController.getDetail.bind(XeRouterController)
+);
+router.post(
+    '/create',
+    checkPermission(12),
+    upload.single('hinhAnh'),
+    XeRouterController.create.bind(XeRouterController)
+);
+router.post(
+    '/update',
+    checkPermission(13),
+    upload.single('hinhAnh'),
+    XeRouterController.update.bind(XeRouterController)
+);
+router.delete(
+    '/delete/:id',
+    checkPermission(14),
+    XeRouterController.delete.bind(XeRouterController)
+);
 
 module.exports = router;
